@@ -1,0 +1,93 @@
+{
+  "cluster_name": "KGU Sovereign Local AI Mesh",
+  "total_nodes": 7,
+  "total_ram_gb": 512,
+  "total_storage_tb": 17,
+  "listen_port": 11435,
+  "nodes": [
+    {
+      "id": "mac-node-01",
+      "name": "Master MacBook Pro (Local Host)",
+      "os": "darwin",
+      "ip": "127.0.0.1",
+      "port": 11434,
+      "ram_gb": 128,
+      "gpu": "Apple Silicon Unified Memory (Metal)",
+      "primary": true,
+      "capabilities": ["text", "vision", "coding", "embeddings"]
+    },
+    {
+      "id": "mac-node-02",
+      "name": "MacBook Node 02",
+      "os": "darwin",
+      "ip": "192.168.1.102",
+      "port": 11434,
+      "ram_gb": 64,
+      "gpu": "Apple Silicon Unified Memory (Metal)",
+      "primary": false,
+      "capabilities": ["text", "coding"]
+    },
+    {
+      "id": "mac-node-03",
+      "name": "MacBook Node 03",
+      "os": "darwin",
+      "ip": "192.168.1.103",
+      "port": 11434,
+      "ram_gb": 64,
+      "gpu": "Apple Silicon Unified Memory (Metal)",
+      "primary": false,
+      "capabilities": ["text", "vision"]
+    },
+    {
+      "id": "mac-node-04",
+      "name": "MacBook Node 04",
+      "os": "darwin",
+      "ip": "192.168.1.104",
+      "port": 11434,
+      "ram_gb": 64,
+      "gpu": "Apple Silicon Unified Memory (Metal)",
+      "primary": false,
+      "capabilities": ["text"]
+    },
+    {
+      "id": "win-node-01",
+      "name": "Windows GPU Rig 01",
+      "os": "win32",
+      "ip": "192.168.1.105",
+      "port": 11434,
+      "ram_gb": 64,
+      "gpu": "NVIDIA CUDA / DirectML",
+      "primary": false,
+      "capabilities": ["text", "coding", "thinking"]
+    },
+    {
+      "id": "win-node-02",
+      "name": "Windows GPU Rig 02",
+      "os": "win32",
+      "ip": "192.168.1.106",
+      "port": 11434,
+      "ram_gb": 64,
+      "gpu": "NVIDIA CUDA / DirectML",
+      "primary": false,
+      "capabilities": ["text", "coding"]
+    },
+    {
+      "id": "win-node-03",
+      "name": "Windows GPU Rig 03",
+      "os": "win32",
+      "ip": "192.168.1.107",
+      "port": 11434,
+      "ram_gb": 64,
+      "gpu": "NVIDIA CUDA / DirectML",
+      "primary": false,
+      "capabilities": ["text", "embeddings"]
+    }
+  ],
+  "default_models": {
+    "text": "llama3.2",
+    "coding": "qwen2.5-coder:7b",
+    "thinking": "deepseek-r1:8b",
+    "vision": "llava",
+    "embedding": "nomic-embed-text"
+  }
+}

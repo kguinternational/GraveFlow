@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script type="importmap">
+  {
+    "imports": {
+      "livekit-client": "https://cdn.jsdelivr.net/npm/livekit-client@2.11.3/+esm",
+      "protobufjs": "https://cdn.jsdelivr.net/npm/protobufjs@7.5.0/+esm"
+    }
+  }
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GraveFlow Admin</title>
+  <script>
+    window.REQUIRED_ROLES = ['admin'];
+  </script>
+  <script src="auth_guard.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+  <style>
+    /* ============================================================
+       DESIGN SYSTEM TOKENS
+    ============================================================ */
+    :root {
+      --bg-page:       #0a0a0a;
+      --bg-card:       #111111;
+      --bg-card-alt:   #1a1a1a;
+      --accent:        #c9a84c;
+      --accent-dim:    rgba(201,168,76,0.15);
+      --text-primary:  #e8e8e8;
+      --text-secondary:#888888;
+      --success:       #4caf50;
+      --success-dim:   rgba(76,175,80,0.15);
+      --danger:        #f44336;
+      --danger-dim:    rgba(244,67,54,0.15);
+      --border:        #2a2a2a;
+      --radius:        8px;
+      --font:          'Inter', system-ui, -apple-system, sans-serif;
+      --transition:    0.18s ease;
+    }
+
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 16px; }
+
+    body {
+      background: var(--bg-page);
+      color: var(--text-primary);
+      font-family: var(--font);
+      min-height: 100vh;
+      padding-bottom: 2rem;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+
+    /* ============================================================
+       SCROLLBAR
+    ============================================================ */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-card); }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+    /* ============================================================
+       LAYOUT UTILITIES
+    ============================================================ */
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+    }
+
+    /* ============================================================
+       HEADER
+    ============================================================ */
+    #header {
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.875rem 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .header-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .header-title span {
+      color: var(--accent);
+    }
+
+    .header-meta {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    #last-updated {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    #last-updated.stale {
+      color: var(--danger);
+    }
+
+    #stale-indicator {
+      display: none;
+      font-size: 0.72rem;
+      background: var(--danger-dim);
+      color: var(--danger);
+      border: 1px solid rgba(244,67,54,0.3);
+      border-radius: 4px;
+      padding: 2px 6px;
+    }
+
+    #stale-indicator.visible { display: inline-block; }
+
+    .btn-refresh {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.85rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-primary);
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: border-color var(--transition), background var(--transition);
+      font-family: var(--font);
+    }
+
+    .btn-refresh:hover {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    .btn-refresh svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .btn-refresh.loading svg {
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ============================================================
+       CONNECTION STATUS
+    ============================================================ */
+    .conn-status {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-left: auto;
+    }
+
+    .conn-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--danger);
+      transition: background var(--transition), box-shadow var(--transition);
+      flex-shrink: 0;
+    }
+
+    .conn-dot.connected {
+      background: var(--success);
+      box-shadow: 0 0 6px rgba(76,175,80,0.7);
+    }
+
+    /* ============================================================
+       ERROR BANNER
+    ============================================================ */
+    #error-banner {
+      display: none;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.7rem 1.25rem;
+      background: var(--danger-dim);
+      border-bottom: 1px solid rgba(244,67,54,0.25);
+      font-size: 0.84rem;
+      color: var(--danger);
+    }
+
+    #error-banner.visible { display: flex; }
+
+    #error-banner .error-text { flex: 1; }
+
+    .btn-dismiss {
+      background: none;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 0 4px;
+      opacity: 0.7;
+      transition: opacity var(--transition);
+    }
+
+    .btn-dismiss:hover { opacity: 1; }
+
+    /* ============================================================
+       MAIN CONTENT
+    ============================================================ */
+    .main-content {
+      padding: 1.5rem 1.25rem 0;
+      max-width: 1440px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* ============================================================
+       SECTION HEADINGS
+    ============================================================ */
+    .section-heading {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-secondary);
+      margin-bottom: 0.75rem;
+    }
+
+    /* ============================================================
+       METRICS CARDS
+    ============================================================ */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      transition: border-color var(--transition), transform var(--transition);
+    }
+
+    .metric-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .metric-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+
+    .metric-label {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* ============================================================
+       MIDDLE ROW: DRIVER TABLE + ACTIVE GIGS
+    ============================================================ */
+    .middle-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    /* ============================================================
+       PANELS (shared wrapper)
+    ============================================================ */
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.875rem 1.125rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    .panel-count {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      background: var(--bg-card-alt);
+      border-radius: 10px;
+      padding: 2px 8px;
+    }
+
+    /* ============================================================
+       DRIVER TABLE
+    ============================================================ */
+    .table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    thead th {
+      padding: 0.6rem 1rem;
+      text-align: left;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background var(--transition);
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+
+    tbody tr:hover { background: var(--bg-card-alt); }
+
+    tbody td {
+      padding: 0.65rem 1rem;
+      color: var(--text-primary);
+      white-space: nowrap;
+    }
+
+    .driver-id {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.78rem;
+      color: var(--accent);
+    }
+
+    .balance-cell {
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    .badge-active {
+      background: var(--success-dim);
+      color: var(--success);
+      border: 1px solid rgba(76,175,80,0.3);
+    }
+
+    .badge-pending {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid rgba(201,168,76,0.3);
+    }
+
+    .badge-anomaly {
+      background: var(--danger-dim);
+      color: var(--danger);
+      border: 1px solid rgba(244,67,54,0.3);
+    }
+
+    .badge-verified {
+      background: var(--success-dim);
+      color: var(--success);
+      border: 1px solid rgba(76,175,80,0.3);
+    }
+
+    /* Empty state */
+    .empty-state {
+      padding: 2.5rem 1rem;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.84rem;
+    }
+
+    .empty-state-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* ============================================================
+       ACTIVE GIGS GRID
+    ============================================================ */
+    .gigs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      padding: 0.875rem;
+    }
+
+    .gig-card {
+      background: var(--bg-card-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.875rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      transition: border-color var(--transition), transform var(--transition);
+    }
+
+    .gig-card:hover {
+      border-color: #3a3a3a;
+      transform: translateY(-1px);
+    }
+
+    .gig-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .gig-id {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 110px;
+    }
+
+    .gig-service {
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .gig-detail {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .gig-detail-icon { font-size: 0.85rem; }
+
+    /* ============================================================
+       LIVE EVENT FEED
+    ============================================================ */
+    .feed-panel { }
+
+    #event-feed {
+      padding: 0;
+      max-height: 340px;
+      overflow-y: auto;
+    }
+
+    .feed-entry {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.65rem 1.125rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.82rem;
+      animation: slideIn 0.25s ease;
+      transition: background var(--transition);
+    }
+
+    .feed-entry:last-child { border-bottom: none; }
+
+    .feed-entry:hover { background: var(--bg-card-alt); }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .feed-entry.verified {
+      border-left: 3px solid var(--success);
+    }
+
+    .feed-entry.anomaly {
+      border-left: 3px solid var(--danger);
+    }
+
+    .feed-entry.gig-new {
+      border-left: 3px solid var(--accent);
+    }
+
+    .feed-timestamp {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      padding-top: 1px;
+    }
+
+    .feed-icon { font-size: 1rem; flex-shrink: 0; }
+
+    .feed-body { flex: 1; }
+
+    .feed-title {
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    .feed-title.success { color: var(--success); }
+    .feed-title.danger  { color: var(--danger); }
+    .feed-title.gold    { color: var(--accent); }
+
+    .feed-detail {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .feed-empty {
+      padding: 2rem;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @media (max-width: 1024px) {
+      .middle-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ============================================================
+       GIG MAP
+    ============================================================ */
+    #gig-map {
+      height: 380px;
+      width: 100%;
+      border-radius: 0 0 var(--radius) var(--radius);
+      background: #111;
+    }
+    .leaflet-container {
+      background: #1a1a1a;
+      font-family: var(--font);
+    }
+
+    @media (max-width: 768px) {
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .gigs-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .header-inner {
+        padding: 0.75rem 1rem;
+      }
+
+      .main-content {
+        padding: 1rem 1rem 0;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .metric-value {
+        font-size: 1.6rem;
+      }
+
+      .header-title {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       HEADER
+  ============================================================ -->
+  <header id="header">
+    <div class="header-inner">
+      <a href="index.html" style="text-decoration: none; color: inherit;">
+        <div class="header-title">Grave<span>Flow</span> Admin</div>
+      </a>
+
+      <div class="header-meta" style="display: flex; align-items: center; gap: 1rem;">
+        <span id="last-updated">Last updated: —</span>
+        <span id="stale-indicator">⚠ Stale</span>
+        <span style="opacity: 0.5;">|</span>
+        <span style="color: var(--accent); font-weight: 600;">Admin: <span id="admin-name" style="color: var(--text-primary);">—</span></span>
+        <a href="media-studio.html" style="border: 1px solid var(--accent); color: var(--accent); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-decoration: none;">🎬 Media Studio</a>
+        <button onclick="doLogout()" style="background: none; border: 1px solid var(--border); color: var(--accent); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer;">Log Out</button>
+      </div>
+      <button class="btn-refresh" id="btn-refresh" title="Refresh ledger now" onclick="loadLedger(true)">
+          <!-- refresh icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          Refresh
+        </button>
+      </div>
+
+      <div class="conn-status">
+        <div class="conn-dot" id="conn-dot"></div>
+        <span id="conn-label">Disconnected</span>
+      </div>
+    </div>
+
+    <!-- Error Banner -->
+    <div id="error-banner">
+      <span class="error-text" id="error-text">An error occurred.</span>
+      <button class="btn-dismiss" onclick="dismissError()" title="Dismiss">✕</button>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       MAIN CONTENT
+  ============================================================ -->
+  <main class="main-content">
+
+    <!-- ── Metrics Row ─────────────────────────────────────────── -->
+    <section aria-label="Metrics overview">
+      <p class="section-heading">Overview</p>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-value" id="metric-total-gigs">—</div>
+          <div class="metric-label">Total Honors</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" id="metric-total-payouts">—</div>
+          <div class="metric-label">Total Payouts</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" id="metric-verified">—</div>
+          <div class="metric-label">Verified</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" id="metric-anomaly-rate">—</div>
+          <div class="metric-label">Anomaly Rate</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Middle Row ──────────────────────────────────────────── -->
+    <div class="middle-row">
+
+      <!-- Driver Table -->
+      <section aria-label="Drivers">
+        <p class="section-heading">Drivers</p>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Driver Balances</span>
+            <span class="panel-count" id="driver-count">0 drivers</span>
+          </div>
+          <div class="table-wrapper">
+            <table id="driver-table" aria-label="Driver ledger">
+              <thead>
+                <tr>
+                  <th>Driver ID</th>
+                  <th>Balance</th>
+                  <th>Completed&nbsp;Honors</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="driver-tbody">
+                <!-- rows injected by JS -->
+              </tbody>
+            </table>
+            <div id="driver-empty" class="empty-state" style="display:none;">
+              <div class="empty-state-icon">🪦</div>
+              No drivers yet
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Active Honors -->
+      <section aria-label="Active honors">
+        <p class="section-heading">Active Honors</p>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Active Honor Queue</span>
+            <span class="panel-count" id="gig-count">0 honors</span>
+          </div>
+          <div id="gigs-container">
+            <div id="gigs-grid" class="gigs-grid">
+              <!-- cards injected by JS -->
+            </div>
+            <div id="gigs-empty" class="empty-state" style="display:none;">
+              <div class="empty-state-icon">📋</div>
+              No active honors
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /.middle-row -->
+
+    <!-- ── Live Event Feed ─────────────────────────────────────── -->
+    <section aria-label="Live event feed">
+      <p class="section-heading">Live Event Feed</p>
+      <div class="panel feed-panel">
+        <div class="panel-header">
+          <span class="panel-title">Real-Time Events</span>
+          <span class="panel-count" id="feed-count">0 events</span>
+        </div>
+        <div id="event-feed" aria-live="polite" aria-label="Live events">
+          <div class="feed-empty" id="feed-empty">Waiting for events…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Gig Location Map ─────────────────────────────────────── -->
+    <section aria-label="Gig location map">
+      <p class="section-heading">Gig Location Map</p>
+      <div class="panel" style="padding:0; overflow:hidden;">
+        <div class="panel-header" style="padding:0.75rem 1rem;">
+          <span class="panel-title">🗺️ Active Gig Locations</span>
+          <span class="panel-count" id="map-marker-count">0 markers</span>
+        </div>
+        <div id="gig-map"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Leaflet Map CDN -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+  <!-- Socket.io CDN -->
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+  <script>
+    /* ==========================================================
+       STATE
+    ========================================================== */
+    const PROD_BACKEND = 'https://api.graveflow.com';
+    const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+      ? 'http://localhost:8002'
+      : PROD_BACKEND + '/api';
+    const REFRESH_MS   = 10_000;     // 10 second polling
+    const MAX_EVENTS   = 50;
+
+    let lastLedger     = null;       // last successfully loaded ledger
+    let feedEvents     = [];         // [{type, ts, title, detail}]
+    let refreshTimer   = null;
+    let isLoading      = false;
+
+    /* ==========================================================
+       HELPERS
+    ========================================================== */
+    function fmtTime(date) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+
+    function fmtCurrency(n) {
+      return '$' + Number(n || 0).toFixed(2);
+    }
+
+    function truncate(str, n = 14) {
+      if (!str) return '—';
+      return str.length > n ? str.slice(0, n) + '…' : str;
+    }
+
+    /* ==========================================================
+       ERROR BANNER
+    ========================================================== */
+    function showError(msg) {
+      document.getElementById('error-text').textContent = msg;
+      document.getElementById('error-banner').classList.add('visible');
+    }
+
+    function dismissError() {
+      document.getElementById('error-banner').classList.remove('visible');
+    }
+
+    /* ==========================================================
+       STALE INDICATOR
+    ========================================================== */
+    function setStale(stale) {
+      const lu  = document.getElementById('last-updated');
+      const ind = document.getElementById('stale-indicator');
+      if (stale) {
+        lu.classList.add('stale');
+        ind.classList.add('visible');
+      } else {
+        lu.classList.remove('stale');
+        ind.classList.remove('visible');
+      }
+    }
+
+    /* ==========================================================
+       LEDGER FETCH
+    ========================================================== */
+    async function loadLedger(manual = false) {
+      if (isLoading) return;
+      isLoading = true;
+
+      const btn = document.getElementById('btn-refresh');
+      btn.classList.add('loading');
+
+      try {
+        const res = await fetch(`${API_BASE}/ledger`, {
+          signal: AbortSignal.timeout(8000)
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+
+        const data = await res.json();
+
+        // Cache last known good ledger
+        lastLedger = data;
+        setStale(false);
+        dismissError();
+
+        // Update UI
+        renderMetrics(data);
+        renderDriverTable(data);
+        renderGigs(data);
+
+        // Update timestamp
+        document.getElementById('last-updated').textContent =
+          'Last updated: ' + fmtTime(new Date());
+
+      } catch (err) {
+        const msg = `Ledger fetch failed: ${err.message || err}`;
+        showError(msg);
+        setStale(true);
+
+        // If we have stale data, keep it displayed
+        if (lastLedger) {
+          renderMetrics(lastLedger);
+          renderDriverTable(lastLedger);
+          renderGigs(lastLedger);
+        }
+      } finally {
+        isLoading = false;
+        btn.classList.remove('loading');
+      }
+    }
+
+    /* ==========================================================
+       METRICS
+    ========================================================== */
+    function renderMetrics(ledger) {
+      // Safely extract gigs (could be object or array)
+      const gigsRaw = ledger.gigs ?? ledger.active_gigs ?? {};
+      const gigsArr = Array.isArray(gigsRaw) ? gigsRaw : Object.values(gigsRaw);
+
+      // Safely extract drivers
+      const driversRaw = ledger.drivers ?? {};
+      const driversArr = Array.isArray(driversRaw) ? driversRaw : Object.values(driversRaw);
+
+      // Collect all completed gigs from driver records
+      const allCompletedGigs = driversArr.flatMap(d =>
+        Array.isArray(d.completed_gigs) ? d.completed_gigs : []
+      );
+
+      const totalGigs      = gigsArr.length + allCompletedGigs.length;
+      const totalPayouts   = allCompletedGigs.reduce((sum, g) => sum + (Number(g.payout) || 0), 0);
+      const verifiedCount  = allCompletedGigs.length;  // completed == verified in this system
+
+      // Count anomalies from active gigs
+      const anomalyCount   = gigsArr.filter(g =>
+        (g.status || '').toLowerCase().includes('anomaly') ||
+        (g.status || '').toLowerCase().includes('quarantine')
+      ).length;
+
+      const anomalyRate    = totalGigs > 0
+        ? ((anomalyCount / totalGigs) * 100).toFixed(1) + '%'
+        : '0.0%';
+
+      document.getElementById('metric-total-gigs').textContent   = totalGigs;
+      document.getElementById('metric-total-payouts').textContent = fmtCurrency(totalPayouts);
+      document.getElementById('metric-verified').textContent      = verifiedCount;
+      document.getElementById('metric-anomaly-rate').textContent  = anomalyRate;
+    }
+
+    /* ==========================================================
+       DRIVER TABLE
+    ========================================================== */
+    function renderDriverTable(ledger) {
+      const driversRaw = ledger.drivers ?? {};
+      const driversArr = Array.isArray(driversRaw)
+        ? driversRaw.map((d, i) => ({ id: d.id ?? `driver_${i}`, ...d }))
+        : Object.entries(driversRaw).map(([id, d]) => ({ id, ...d }));
+
+      const tbody  = document.getElementById('driver-tbody');
+      const empty  = document.getElementById('driver-empty');
+      const count  = document.getElementById('driver-count');
+
+      count.textContent = driversArr.length + (driversArr.length === 1 ? ' driver' : ' drivers');
+
+      if (driversArr.length === 0) {
+        tbody.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+
+      empty.style.display = 'none';
+
+      // Sort by balance descending
+      driversArr.sort((a, b) => (Number(b.balance) || 0) - (Number(a.balance) || 0));
+
+      tbody.innerHTML = driversArr.map(driver => {
+        const balance       = Number(driver.balance) || 0;
+        const completedGigs = Array.isArray(driver.completed_gigs)
+          ? driver.completed_gigs.length
+          : (Number(driver.completed_gigs) || 0);
+        const statusBadge   = completedGigs > 0
+          ? `<span class="status-badge badge-active">● Active</span>`
+          : `<span class="status-badge badge-pending">○ Idle</span>`;
+
+        return `
+          <tr>
+            <td><span class="driver-id">${escHtml(driver.id)}</span></td>
+            <td><span class="balance-cell">${fmtCurrency(balance)}</span></td>
+            <td>${completedGigs}</td>
+            <td>${statusBadge}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    /* ==========================================================
+       ACTIVE GIGS GRID
+    ========================================================== */
+    function renderGigs(ledger) {
+      const gigsRaw = ledger.gigs ?? ledger.active_gigs ?? {};
+      const gigsArr = Array.isArray(gigsRaw)
+        ? gigsRaw
+        : Object.entries(gigsRaw).map(([id, g]) => ({ id, ...g }));
+
+      const grid  = document.getElementById('gigs-grid');
+      const empty = document.getElementById('gigs-empty');
+      const count = document.getElementById('gig-count');
+
+      count.textContent = gigsArr.length + (gigsArr.length === 1 ? ' gig' : ' gigs');
+
+      if (gigsArr.length === 0) {
+        grid.innerHTML = '';
+        grid.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+      }
+
+      empty.style.display = 'none';
+      grid.style.display  = 'grid';
+
+      grid.innerHTML = gigsArr.map(gig => {
+        const gigId   = gig.id ?? gig.jobId ?? '—';
+        
+        // Find if this active gig is currently quarantined
+        const quarantineDetails = ledger.quarantined_gigs 
+          ? ledger.quarantined_gigs.find(q => q.jobId === gigId) 
+          : null;
+          
+        let badgeClass, badgeLabel;
+        if (quarantineDetails) {
+          badgeClass = 'badge-anomaly'; badgeLabel = 'Quarantined';
+        } else {
+          badgeClass = 'badge-pending'; badgeLabel = 'Pending';
+        }
+
+        const service = gig.service ?? gig.type ?? 'Unknown Service';
+        const cemetery = gig.cemetery ?? gig.location ?? '—';
+        const plot    = gig.plot ?? '—';
+        const payout  = gig.payout ?? 18.00;
+
+        let actionHtml = '';
+        if (quarantineDetails) {
+          const imgUrl = quarantineDetails.image_url 
+            ? (quarantineDetails.image_url.startsWith('/') ? `${API_BASE}${quarantineDetails.image_url}` : quarantineDetails.image_url) 
+            : '';
+            
+          actionHtml = `
+            <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border);">
+              <div style="font-size:11px; color:var(--danger); margin-bottom:8px; font-weight:600;">
+                ⚠️ AI Flag: ${escHtml(quarantineDetails.reason)}
+              </div>
+              ${imgUrl ? `
+                <div style="width:100%; height:120px; border-radius:4px; overflow:hidden; border:1px solid var(--border); background:#000; margin-bottom:10px; cursor:pointer;" onclick="viewQuarantineImage('${imgUrl}')">
+                  <img src="${imgUrl}" alt="Proof" style="width:100%; height:100%; object-fit:cover;" />
+                </div>
+              ` : ''}
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <button class="btn btn-primary" onclick="resolveGigAdmin('${gigId}', 'approve')" style="padding:6px; font-size:11px; height:auto; cursor:pointer;">Approve &amp; Pay</button>
+                <button class="btn" onclick="resolveGigAdmin('${gigId}', 'refund')" style="background:rgba(244,67,54,0.15); border:1px solid rgba(244,67,54,0.3); color:var(--danger); padding:6px; font-size:11px; height:auto; cursor:pointer;">Refund Rider</button>
+              </div>
+              <div id="status-${gigId}" style="font-size:11px; text-align:center; margin-top:6px; color:var(--text-sec);"></div>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="gig-card">
+            <div class="gig-card-header">
+              <span class="gig-id" title="${escHtml(String(gigId))}">${escHtml(truncate(String(gigId), 16))}</span>
+              <span class="status-badge ${escHtml(badgeClass)}">${escHtml(badgeLabel)}</span>
+            </div>
+            <div class="gig-service">${escHtml(service)}</div>
+            <div class="gig-detail">
+              <span class="gig-detail-icon">🪦</span>
+              <span>${escHtml(cemetery)}</span>
+            </div>
+            <div class="gig-detail">
+              <span class="gig-detail-icon">📍</span>
+              <span>${escHtml(plot)}</span>
+            </div>
+            <div class="gig-detail" style="margin-top:4px;">
+              <span class="gig-detail-icon">💵</span>
+              <span style="color:var(--accent); font-weight:600;">Payout: $${Number(payout).toFixed(2)}</span>
+            </div>
+            ${actionHtml}
+          </div>
+        `;
+      }).join('');
+
+      // Update map markers whenever gigs are rendered
+      refreshMapMarkers(gigsArr);
+    }
+
+    /* ==========================================================
+       LIVE EVENT FEED
+    ========================================================== */
+    function addFeedEvent({ type, icon, title, titleClass, detail }) {
+      const ts = fmtTime(new Date());
+
+      // Prepend to array
+      feedEvents.unshift({ type, icon, title, titleClass, detail, ts });
+
+      // Enforce max 50 entries
+      if (feedEvents.length > MAX_EVENTS) {
+        feedEvents = feedEvents.slice(0, MAX_EVENTS);
+      }
+
+      // Update count
+      document.getElementById('feed-count').textContent =
+        feedEvents.length + (feedEvents.length === 1 ? ' event' : ' events');
+
+      renderFeed();
+    }
+
+    function renderFeed() {
+      const feed  = document.getElementById('event-feed');
+      const empty = document.getElementById('feed-empty');
+
+      if (feedEvents.length === 0) {
+        empty.style.display = 'block';
+        return;
+      }
+
+      empty.style.display = 'none';
+
+      feed.innerHTML = feedEvents.map(ev => `
+        <div class="feed-entry ${escHtml(ev.type)}">
+          <span class="feed-icon">${ev.icon}</span>
+          <div class="feed-body">
+            <div class="feed-title ${escHtml(ev.titleClass)}">${escHtml(ev.title)}</div>
+            ${ev.detail ? `<div class="feed-detail">${escHtml(ev.detail)}</div>` : ''}
+          </div>
+          <span class="feed-timestamp">${ev.ts}</span>
+        </div>
+      `).join('');
+
+      // Scroll to top (newest events)
+      feed.scrollTop = 0;
+    }
+
+    /* ==========================================================
+       SOCKET.IO
+    ========================================================== */
+    function initSocket() {
+      const PROD_BACKEND_SOCKET = 'https://api.graveflow.com';
+      const socketHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+        ? 'http://localhost:8002'
+        : PROD_BACKEND_SOCKET;
+      const socket = io(socketHost, {
+        reconnectionDelay: 2000,
+        reconnectionDelayMax: 10000,
+        timeout: 5000
+      });
+
+      const dot   = document.getElementById('conn-dot');
+      const label = document.getElementById('conn-label');
+
+      function setConnected(connected) {
+        if (connected) {
+          dot.classList.add('connected');
+          label.textContent = 'Connected';
+        } else {
+          dot.classList.remove('connected');
+          label.textContent = 'Disconnected';
+        }
+      }
+
+      socket.on('connect', () => {
+        setConnected(true);
+        // Reload ledger immediately on reconnect for fresh data
+        loadLedger();
+      });
+
+      socket.on('disconnect', () => {
+        setConnected(false);
+      });
+
+      socket.on('connect_error', () => {
+        setConnected(false);
+      });
+
+      /* proof_verified ──────────────────────────────────────── */
+      socket.on('proof_verified', (data) => {
+        const detail = [
+          data.driverId ? `Driver: ${data.driverId}` : null,
+          data.jobId    ? `Job: ${truncate(data.jobId, 20)}` : null,
+          data.payoutAmount != null ? `Payout: ${fmtCurrency(data.payoutAmount)}` : null
+        ].filter(Boolean).join(' · ');
+
+        addFeedEvent({
+          type:       'verified',
+          icon:       '✅',
+          title:      'Proof verified',
+          titleClass: 'success',
+          detail
+        });
+
+        // Refresh ledger to reflect balance update
+        loadLedger();
+      });
+
+      /* anomaly_detected ────────────────────────────────────── */
+      socket.on('anomaly_detected', (data) => {
+        const detail = [
+          data.driverId ? `Driver: ${data.driverId}` : null,
+          data.jobId    ? `Job: ${truncate(data.jobId, 20)}` : null,
+          data.reason   ? `Reason: ${data.reason}` : null
+        ].filter(Boolean).join(' · ');
+
+        addFeedEvent({
+          type:       'anomaly',
+          icon:       '⚠️',
+          title:      'Anomaly detected',
+          titleClass: 'danger',
+          detail
+        });
+      });
+
+      /* gig_available ───────────────────────────────────────── */
+      socket.on('gig_available', (data) => {
+        const detail = [
+          data.id      ? `Gig: ${truncate(data.id ?? data.jobId, 20)}` : null,
+          data.service ? `Service: ${data.service}` : null,
+          data.cemetery ? `Cemetery: ${data.cemetery}` : null
+        ].filter(Boolean).join(' · ');
+
+        addFeedEvent({
+          type:       'gig-new',
+          icon:       '📋',
+          title:      'New gig dispatched',
+          titleClass: 'gold',
+          detail
+        });
+
+        // Refresh ledger to show new gig in the grid
+        loadLedger();
+      });
+    }
+
+    /* ==========================================================
+       HTML ESCAPE UTILITY (prevent XSS from live data)
+    ========================================================== */
+    function escHtml(str) {
+      if (str == null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    /* ==========================================================
+       GIG MAP — LEAFLET
+    ========================================================== */
+    let gigMap = null;
+    let mapMarkers = [];
+
+    function initMap() {
+      if (gigMap) return;
+
+      const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '&copy; Google Maps'
+      });
+
+      const googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '&copy; Google Maps'
+      });
+
+      const googleRoadmap = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '&copy; Google Maps'
+      });
+
+      const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      });
+
+      gigMap = L.map('gig-map', {
+        center: [39.8283, -98.5795],
+        zoom: 4,
+        layers: [googleHybrid]
+      });
+
+      const baseMaps = {
+        "Google Hybrid": googleHybrid,
+        "Google Satellite": googleSatellite,
+        "Google Roadmap": googleRoadmap,
+        "OpenStreetMap": osm
+      };
+
+      L.control.layers(baseMaps).addTo(gigMap);
+    }
+
+    let adminRoutingControls = [];
+
+    function clearAdminRoutes() {
+      adminRoutingControls.forEach(ctrl => {
+        try { gigMap.removeControl(ctrl); } catch(e) {}
+      });
+      adminRoutingControls = [];
+    }
+
+    function refreshMapMarkers(gigsArr) {
+      if (!gigMap) return;
+
+      clearAdminRoutes();
+
+      // Remove old markers
+      mapMarkers.forEach(m => gigMap.removeLayer(m));
+      mapMarkers = [];
+
+      const validGigs = gigsArr.filter(g => {
+        // gps field may be "lat, lon" string or object
+        return g.gps || (g.lat && g.lng);
+      });
+
+      validGigs.forEach(gig => {
+        let lat, lon;
+        if (typeof gig.gps === 'string') {
+          const parts = gig.gps.split(',').map(s => parseFloat(s.trim()));
+          if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+            [lat, lon] = parts;
+          }
+        } else if (gig.lat && gig.lng) {
+          lat = parseFloat(gig.lat);
+          lon = parseFloat(gig.lng);
+        }
+        if (lat == null || isNaN(lat) || isNaN(lon)) return;
+
+        const rawStatus = (gig.status || '').toLowerCase();
+        const color = rawStatus.includes('anomaly') || rawStatus.includes('quarantine') ? '#f44336'
+                    : rawStatus.includes('verified') || rawStatus.includes('complete') ? '#4caf50'
+                    : '#c9a84c';
+
+        const marker = L.circleMarker([lat, lon], {
+          radius: 9, fillColor: color, color: '#0a0a0a',
+          weight: 2, opacity: 1, fillOpacity: 0.85
+        });
+
+        const gigId = gig.id ?? gig.jobId ?? '—';
+        const service = gig.service ?? gig.type ?? 'Service';
+        const cemetery = gig.cemetery ?? gig.location ?? '—';
+        const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+        marker.bindPopup(
+          `<div style="font-family: 'Inter', sans-serif; color: #fff;">` +
+          `<b>${escHtml(String(service))}</b><br>` +
+          `🏛️ ${escHtml(String(cemetery))}<br>` +
+          `📍 <a href="${googleMapsUrl}" target="_blank" style="color:#c9a84c; font-weight:600; text-decoration:underline;">${lat.toFixed(5)}, ${lon.toFixed(5)} (Google Maps)</a><br>` +
+          `<small style="color:#888">${escHtml(truncate(String(gigId), 24))}</small>` +
+          `</div>`
+        );
+
+        marker.addTo(gigMap);
+        mapMarkers.push(marker);
+
+        // Draw real-world routing for active gigs in escrow
+        if (rawStatus.includes('escrow') || rawStatus.includes('locked')) {
+          const startLat = lat + 0.008;
+          const startLon = lon - 0.008;
+
+          const driverMarker = L.marker([startLat, startLon], {
+            icon: L.divIcon({
+              className: 'custom-driver-icon',
+              html: '🚗',
+              iconSize: [24, 24],
+              iconAnchor: [12, 12]
+            })
+          }).addTo(gigMap).bindPopup(`<b>Driver Dispatched</b><br>Job: <small>${escHtml(truncate(String(gigId), 12))}</small>`);
+          mapMarkers.push(driverMarker);
+
+          try {
+            const routingCtrl = L.Routing.control({
+              waypoints: [
+                L.latLng(startLat, startLon),
+                L.latLng(lat, lon)
+              ],
+              router: L.Routing.osrmv1({
+                serviceUrl: 'https://router.project-osrm.org/route/v1'
+              }),
+              lineOptions: {
+                styles: [{ color: '#c9a84c', weight: 4, opacity: 0.7 }]
+              },
+              createMarker: function() { return null; },
+              addWaypoints: false,
+              routeWhileDragging: false,
+              show: false
+            }).addTo(gigMap);
+            adminRoutingControls.push(routingCtrl);
+          } catch(e) {
+            console.error('Failed to init admin route:', e);
+            const fallbackLine = L.polyline([[startLat, startLon], [lat, lon]], { color: '#c9a84c', weight: 3, opacity: 0.6, dashArray: '5, 5' }).addTo(gigMap);
+            mapMarkers.push(fallbackLine);
+          }
+        }
+      });
+
+      document.getElementById('map-marker-count').textContent =
+        mapMarkers.length + (mapMarkers.length === 1 ? ' marker' : ' markers');
+
+      // Fit map to markers if any exist
+      if (mapMarkers.length > 0) {
+        const group = L.featureGroup(mapMarkers);
+        gigMap.fitBounds(group.getBounds().pad(0.25));
+      }
+    }
+
+    window.addEventListener('auth-ready', (e) => {
+      const user = e.detail;
+      document.getElementById('admin-name').textContent = user.name;
+    });
+
+    function doLogout() {
+      localStorage.removeItem('gf_token');
+      localStorage.removeItem('gf_user');
+      window.location.reload();
+    }
+
+    /* ==========================================================
+       HYBRID ESCROW DISPUTE RESOLUTION
+    ========================================================== */
+    function viewQuarantineImage(imgUrl) {
+      const modal = document.getElementById('image-modal');
+      const img = document.getElementById('modal-img');
+      img.src = imgUrl;
+      modal.style.display = 'flex';
+    }
+
+    function closeQuarantineImage() {
+      document.getElementById('image-modal').style.display = 'none';
+    }
+
+    async function resolveGigAdmin(jobId, action) {
+      const statusEl = document.getElementById(`status-${jobId}`);
+      if (statusEl) statusEl.textContent = 'Resolving...';
+      try {
+        const token = localStorage.getItem('gf_token');
+        const resp = await fetch(`${API_BASE}/resolve-gig`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : ''
+          },
+          body: JSON.stringify({ jobId, action })
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || 'Failed to resolve');
+        
+        if (statusEl) statusEl.textContent = '✓ Resolved!';
+        setTimeout(() => {
+          loadLedger(); // Refresh gigs list
+        }, 1000);
+      } catch (err) {
+        if (statusEl) statusEl.textContent = `⚠️ Error: ${err.message}`;
+      }
+    }
+
+    /* ==========================================================
+       INIT
+    ========================================================== */
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initial ledger load
+      loadLedger();
+
+      // Polling every 10 seconds
+      refreshTimer = setInterval(() => loadLedger(), REFRESH_MS);
+
+      // Socket.io real-time events
+      initSocket();
+
+      // Leaflet map
+      initMap();
+    });
+  </script>
+
+  <!-- Lightbox Modal for Image Review -->
+  <div id="image-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9999; align-items:center; justify-content:center; padding:20px;" onclick="closeQuarantineImage()">
+    <img id="modal-img" src="" alt="Full proof" style="max-width:90%; max-height:90%; object-fit:contain; border-radius:var(--radius); border:2px solid var(--accent);" />
+    <div style="position:absolute; top:24px; right:24px; color:var(--text-primary); font-size:28px; font-weight:700; cursor:pointer;">×</div>
+  </div>
+  <script type="module" src="twin_assistant.js"></script>
+</body>
+</html>

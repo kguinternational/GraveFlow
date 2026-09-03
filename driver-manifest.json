@@ -1,0 +1,17 @@
+{
+  "name": "GraveFlow Driver",
+  "short_name": "GF Driver",
+  "description": "GraveFlow driver app for completing memorial service gigs",
+  "start_url": "/driver.html",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#c9a84c",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%230a0a0a'/><text y='.9em' font-size='150' x='20'>⚰️</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}

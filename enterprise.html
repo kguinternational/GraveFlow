@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>GraveFlow — Enterprise Command Center</title>
+  <script>
+    window.REQUIRED_ROLES = ['enterprise'];
+  </script>
+  <script src="auth_guard.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#08080a;--panel:#0f0f14;--panel2:#16161e;
+      --border:#222230;--gold:#c9a84c;--purple:#9b6dff;
+      --text:#e8e8f0;--muted:#55556a;--radius:10px;
+      --font:'Inter',system-ui,sans-serif;
+      --success:#4caf50;--danger:#f44336;--warn:#ff9800;
+    }
+    html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow-x:hidden}
+
+    /* Header */
+    header{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:16px 28px;background:var(--panel);border-bottom:1px solid var(--border);
+      position:sticky;top:0;z-index:100;
+    }
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo-icon{font-size:26px}
+    .logo-title{font-size:17px;font-weight:700;color:var(--gold)}
+    .logo-sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
+    .header-badges{display:flex;gap:10px;align-items:center}
+    .badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:6px}
+    .badge-gold{background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);color:var(--gold)}
+    .badge-purple{background:rgba(155,109,255,.15);border:1px solid rgba(155,109,255,.3);color:var(--purple)}
+    .dot{width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+    /* Layout */
+    .layout{display:grid;grid-template-columns:1fr 380px;gap:20px;padding:24px;min-height:calc(100vh - 65px)}
+
+    /* Panels */
+    .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+    .panel-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .panel-title{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+    .panel-body{padding:18px}
+
+    /* KPI row */
+    .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+    .kpi{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center}
+    .kpi-val{font-size:26px;font-weight:700;color:var(--gold)}
+    .kpi-label{font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+
+    /* Board feed */
+    .board-feed{display:flex;flex-direction:column;gap:12px;max-height:520px;overflow-y:auto}
+    .entry{display:flex;gap:14px;padding:14px;background:var(--panel2);border-radius:8px;border-left:3px solid;animation:slideIn .4s ease}
+    @keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .entry-avatar{font-size:22px;flex-shrink:0;width:32px;text-align:center;margin-top:2px}
+    .entry-name{font-size:12px;font-weight:700}
+    .entry-title{font-size:10px;color:var(--muted);margin-bottom:6px}
+    .entry-text{font-size:13px;line-height:1.6;color:var(--text)}
+    .entry-time{font-size:10px;color:var(--muted);margin-top:6px}
+
+    /* CEO decision box */
+    .decision-box{
+      background:linear-gradient(135deg,rgba(201,168,76,.08),rgba(155,109,255,.08));
+      border:1px solid var(--gold);border-radius:var(--radius);padding:18px;margin-top:16px;
+      animation:slideIn .5s ease;
+    }
+    .decision-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:8px}
+    .decision-text{font-size:14px;line-height:1.7}
+
+    /* Escalation */
+    .escalation-box{
+      background:rgba(244,67,54,.08);border:1px solid var(--danger);
+      border-radius:var(--radius);padding:14px;margin:12px 0;font-size:13px;
+      animation:slideIn .4s ease;
+    }
+
+    /* Sidebar */
+    .sidebar{display:flex;flex-direction:column;gap:16px}
+
+    /* Exec memory cards */
+    .exec-card{
+      background:var(--panel2);border:1px solid var(--border);
+      border-radius:8px;padding:12px;
+      display:flex;gap:10px;align-items:flex-start;
+    }
+    .exec-card-avatar{font-size:20px;flex-shrink:0}
+    .exec-card-name{font-size:12px;font-weight:700}
+    .exec-card-role{font-size:10px;margin-bottom:4px}
+    .exec-card-memory{font-size:11px;color:var(--muted);line-height:1.5;font-style:italic}
+    .memory-count{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(155,109,255,.15);border:1px solid rgba(155,109,255,.3);color:var(--purple)}
+
+    /* Reports */
+    .report-item{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:10px;background:var(--panel2);border-radius:8px;
+      border:1px solid var(--border);margin-bottom:8px;
+    }
+    .report-link{color:var(--gold);text-decoration:none;font-size:12px;font-weight:600}
+    .report-link:hover{text-decoration:underline}
+    .report-cycle{font-size:11px;color:var(--muted)}
+
+    /* Convene button */
+    .convene-btn{
+      width:100%;padding:12px;background:linear-gradient(135deg,var(--gold),var(--purple));
+      border:none;border-radius:var(--radius);color:#000;font-weight:700;font-size:14px;
+      cursor:pointer;transition:opacity .2s;
+    }
+    .convene-btn:hover{opacity:.85}
+    .convene-btn:disabled{opacity:.4;cursor:not-allowed}
+
+    /* Cycle indicator */
+    .cycle-bar{
+      background:linear-gradient(90deg,var(--gold),var(--purple));
+      height:3px;width:0%;transition:width 1s ease;border-radius:3px;
+    }
+    .topic-label{font-size:13px;color:var(--text);padding:10px 0;line-height:1.5}
+
+    /* Status pill */
+    .status-pill{
+      padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;
+    }
+    .status-running{background:rgba(76,175,80,.15);border:1px solid rgba(76,175,80,.3);color:var(--success)}
+    .status-waiting{background:rgba(255,152,0,.15);border:1px solid rgba(255,152,0,.3);color:var(--warn)}
+
+    /* Scrollbar */
+    ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+    @media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{display:none}.kpi-row{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🏢</div>
+    <div>
+      <div class="logo-title">GraveFlow Enterprise</div>
+      <div class="logo-sub">AI Board Command Center</div>
+    </div>
+  </div>
+  <div class="header-badges" style="display: flex; align-items: center; gap: 10px;">
+    <div class="badge badge-gold"><div class="dot"></div><span id="cycleLabel">Cycle —</span></div>
+    <div class="badge badge-purple" id="statusBadge">⏳ Connecting…</div>
+    <span style="opacity: 0.5;">|</span>
+    <span style="color: var(--gold); font-weight: 600; font-size: 11px;">Partner: <span id="partner-name" style="color: var(--text);">—</span></span>
+    <button onclick="doLogout()" style="background: none; border: 1px solid var(--border); color: var(--gold); padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; cursor: pointer;">Log Out</button>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- Main Column -->
+  <div>
+    <!-- KPI Row -->
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-val" id="kpi-rev">$0</div><div class="kpi-label">Revenue</div></div>
+      <div class="kpi"><div class="kpi-val" id="kpi-gigs">0</div><div class="kpi-label">Total Gigs</div></div>
+      <div class="kpi"><div class="kpi-val" id="kpi-drivers">0</div><div class="kpi-label">Drivers</div></div>
+      <div class="kpi"><div class="kpi-val" id="kpi-sessions">0</div><div class="kpi-label">Board Sessions</div></div>
+    </div>
+
+    <!-- Current Agenda -->
+    <div class="panel" style="margin-bottom:20px">
+      <div class="panel-header">
+        <span class="panel-title">📋 Current Agenda</span>
+        <span class="status-pill status-waiting" id="boardStatus">Waiting</span>
+      </div>
+      <div class="panel-body">
+        <div class="topic-label" id="currentTopic">Waiting for next board cycle…</div>
+        <div class="cycle-bar" id="cycleBar"></div>
+      </div>
+    </div>
+
+    <!-- Board Feed -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">🗣️ Live Board Feed</span>
+        <span style="font-size:11px;color:var(--muted)" id="feedCount">0 statements</span>
+      </div>
+      <div class="panel-body">
+        <div class="board-feed" id="boardFeed">
+          <div style="color:var(--muted);font-size:13px;text-align:center;padding:40px 0">
+            Waiting for the board to convene…
+          </div>
+        </div>
+        <div id="decisionArea"></div>
+        <div id="escalationArea"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <!-- Convene button -->
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">⚡ Emergency Session</span></div>
+      <div class="panel-body">
+        <input id="emergencyTopic" type="text" placeholder="Emergency board topic…"
+          style="width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;margin-bottom:10px"/>
+        <button class="convene-btn" onclick="conveneBoard()">📣 Convene Board Now</button>
+      </div>
+    </div>
+
+    <!-- Executive Memory -->
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">🧠 Executive Memory</span></div>
+      <div class="panel-body" id="memoryPanel">
+        <div style="color:var(--muted);font-size:12px">Loading…</div>
+      </div>
+    </div>
+
+    <!-- Board Reports -->
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">📄 Board Reports</span></div>
+      <div class="panel-body" id="reportsPanel">
+        <div style="color:var(--muted);font-size:12px">No reports yet</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+  ? 'http://localhost:8004'
+  : window.location.origin + '/enterprise-api';
+const socketHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+  ? 'http://localhost:8004'
+  : window.location.origin;
+const socketPath = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+  ? '/socket.io'
+  : '/enterprise-api/socket.io';
+const socket = io(socketHost, { path: socketPath });
+let feedCount = 0;
+let sessionCount = 0;
+
+const EXEC_COLORS = {
+  CEO:'#c9a84c',CFO:'#4caf50',COO:'#29b6f6',CTO:'#7c4dff',CMO:'#e91e63',CHRO:'#26a69a'
+};
+
+function ts() {
+  return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+function addFeedEntry(emoji, name, title, text, color) {
+  const feed = document.getElementById('boardFeed');
+  // Remove empty state
+  const empty = feed.querySelector('[style*="text-align:center"]');
+  if (empty) empty.remove();
+
+  const div = document.createElement('div');
+  div.className = 'entry';
+  div.style.borderLeftColor = color || '#c9a84c';
+  div.innerHTML = `
+    <div class="entry-avatar">${emoji}</div>
+    <div style="flex:1">
+      <div class="entry-name" style="color:${color}">${name}</div>
+      <div class="entry-title">${title}</div>
+      <div class="entry-text">${text}</div>
+      <div class="entry-time">${ts()}</div>
+    </div>`;
+  feed.appendChild(div);
+  feed.scrollTop = feed.scrollHeight;
+  feedCount++;
+  document.getElementById('feedCount').textContent = `${feedCount} statements`;
+}
+
+// Socket events
+socket.on('connect', () => {
+  document.getElementById('statusBadge').textContent = '🟢 Enterprise Online';
+  document.getElementById('statusBadge').className = 'badge badge-gold';
+  loadMemory();
+  loadReports();
+});
+
+socket.on('disconnect', () => {
+  document.getElementById('statusBadge').textContent = '🔴 Disconnected';
+});
+
+socket.on('welcome', data => {
+  sessionCount = data.sessions || 0;
+  document.getElementById('kpi-sessions').textContent = sessionCount;
+  document.getElementById('cycleLabel').textContent = `Cycle ${data.cycle || '—'}`;
+});
+
+socket.on('cycle_start', data => {
+  document.getElementById('currentTopic').textContent = `"${data.topic}"`;
+  document.getElementById('boardStatus').textContent = '🔴 In Session';
+  document.getElementById('boardStatus').className = 'status-pill status-running';
+  document.getElementById('cycleLabel').textContent = `Cycle ${data.cycle}`;
+  document.getElementById('cycleBar').style.width = '30%';
+  document.getElementById('decisionArea').innerHTML = '';
+  document.getElementById('escalationArea').innerHTML = '';
+
+  addFeedEntry('📋', `Board Cycle ${data.cycle}`, 'Enterprise Board', `Convening on: "${data.topic}"`, '#9b6dff');
+});
+
+socket.on('metrics', data => {
+  const d = data.bizData || {};
+  document.getElementById('kpi-rev').textContent = `$${(d.totalRevenue||0).toFixed(2)}`;
+  document.getElementById('kpi-gigs').textContent = d.totalGigs || 0;
+  document.getElementById('kpi-drivers').textContent = d.totalDrivers || 0;
+  document.getElementById('cycleBar').style.width = '60%';
+});
+
+socket.on('exec_spoke', data => {
+  addFeedEntry(data.emoji, `${data.name} (${data.role})`, 'Board Statement', data.reply, data.color);
+});
+
+socket.on('escalation', data => {
+  document.getElementById('escalationArea').innerHTML = `
+    <div class="escalation-box">
+      ⚠️ <b>BOARD DISSENT DETECTED</b> — Escalating to CEO arbitration<br>
+      <small style="color:var(--muted)">${data.reason || ''}</small>
+    </div>`;
+});
+
+socket.on('escalation_resolved', data => {
+  document.getElementById('escalationArea').innerHTML += `
+    <div class="escalation-box" style="background:rgba(76,175,80,.08);border-color:var(--success)">
+      ✅ <b>ESCALATION RESOLVED</b> — ${data.ruling}
+    </div>`;
+});
+
+socket.on('ceo_decision', data => {
+  document.getElementById('cycleBar').style.width = '100%';
+  document.getElementById('decisionArea').innerHTML = `
+    <div class="decision-box">
+      <div class="decision-label">👑 CEO Enterprise Directive — Binding</div>
+      <div class="decision-text">${data.decision}</div>
+    </div>`;
+  setTimeout(() => document.getElementById('cycleBar').style.width = '0%', 800);
+});
+
+socket.on('report_ready', data => {
+  sessionCount++;
+  document.getElementById('kpi-sessions').textContent = sessionCount;
+  document.getElementById('boardStatus').textContent = '⏳ Waiting';
+  document.getElementById('boardStatus').className = 'status-pill status-waiting';
+  loadReports();
+  loadMemory();
+  addFeedEntry('📄', 'Board Secretary', 'Report Filed', `Cycle ${data.cycle} report saved. <a href="/board_reports/${data.file}" target="_blank" style="color:var(--gold)">View Report →</a>`, '#9b6dff');
+});
+
+socket.on('cycle_complete', data => {
+  loadMemory();
+});
+
+async function loadMemory() {
+  try {
+    const r = await fetch(`${API}/enterprise/memory`);
+    const data = await r.json();
+    const panel = document.getElementById('memoryPanel');
+    panel.innerHTML = (data.executiveMemory || []).map(e => {
+      const color = EXEC_COLORS[e.role] || '#c9a84c';
+      const execEmojis = {CEO:'👑',CFO:'💼',COO:'⚙️',CTO:'🧠',CMO:'📣',CHRO:'🤝'};
+      return `<div class="exec-card" style="margin-bottom:8px;border-left:3px solid ${color}">
+        <div class="exec-card-avatar">${execEmojis[e.role]||'👤'}</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div class="exec-card-name" style="color:${color}">${e.name||e.role}</div>
+            <span class="memory-count">${e.memoryCount} memories</span>
+          </div>
+          <div class="exec-card-role" style="color:${color}">${e.role}</div>
+          <div class="exec-card-memory">${e.lastMemory ? `"${e.lastMemory.position?.slice(0,80)}…"` : 'No memories yet'}</div>
+        </div>
+      </div>`;
+    }).join('') || '<div style="color:var(--muted);font-size:12px">No memory yet</div>';
+  } catch {}
+}
+
+async function loadReports() {
+  try {
+    const r = await fetch(`${API}/enterprise/reports`);
+    const data = await r.json();
+    const panel = document.getElementById('reportsPanel');
+    if (!data.reports?.length) {
+      panel.innerHTML = '<div style="color:var(--muted);font-size:12px">No reports yet</div>';
+      return;
+    }
+    panel.innerHTML = data.reports.slice(0,5).map((rep,i) => `
+      <div class="report-item">
+        <div>
+          <div class="report-cycle">Cycle ${data.reports.length - i}</div>
+          <a class="report-link" href="${rep.url}" target="_blank">📄 View Board Report</a>
+        </div>
+        <span style="font-size:18px">→</span>
+      </div>`).join('');
+  } catch {}
+}
+
+async function conveneBoard() {
+  const topic = document.getElementById('emergencyTopic').value.trim();
+  if (!topic) { alert('Enter an emergency topic first'); return; }
+  const btn = document.querySelector('.convene-btn');
+  btn.disabled = true; btn.textContent = '⏳ Convening…';
+  try {
+    await fetch(`${API}/enterprise/convene`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ topic })
+    });
+    document.getElementById('emergencyTopic').value = '';
+  } catch (e) { alert('Could not reach Enterprise hub on port 8004'); }
+  setTimeout(() => { btn.disabled = false; btn.textContent = '📣 Convene Board Now'; }, 3000);
+}
+
+// Auth Events
+window.addEventListener('auth-ready', (e) => {
+  const user = e.detail;
+  document.getElementById('partner-name').textContent = user.name;
+});
+
+function doLogout() {
+  localStorage.removeItem('gf_token');
+  localStorage.removeItem('gf_user');
+  window.location.reload();
+}
+</script>
+</body>
+</html>

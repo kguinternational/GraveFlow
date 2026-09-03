@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>GraveFlow — On-Demand Cemetery Care, Powered by Love</title>
+  <meta name="description" content="GraveFlow connects families with local drivers who visit, clean, and photograph graves on demand. GPS-verified. AI-confirmed. Powered by The Love Effect OS."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --bg:#08080a;--surface:#0f0f14;--surface2:#16161e;
+      --border:#1e1e2a;--gold:#c9a84c;--gold-light:#f0d070;
+      --text:#f0f0f8;--muted:#7a7a96;--radius:12px;
+      --serif:'Playfair Display',serif;--sans:'Inter',system-ui,sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;overflow-x:hidden}
+
+    /* ── NAV ── */
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,8,10,0.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(201,168,76,0.1)}
+    .nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .nav-brand-icon{font-size:22px}
+    .nav-brand-name{font-family:var(--serif);font-size:20px;color:var(--gold);font-weight:700}
+    .nav-links{display:flex;align-items:center;gap:28px}
+    .nav-links a{color:var(--muted);text-decoration:none;font-size:14px;font-weight:500;transition:color .2s}
+    .nav-links a:hover{color:var(--gold)}
+    .nav-cta{background:var(--gold);color:#08080a;padding:9px 22px;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;transition:all .2s}
+    .nav-cta:hover{background:var(--gold-light);transform:translateY(-1px)}
+
+    /* ── HERO ── */
+    .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;position:relative;overflow:hidden}
+    .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 30%,rgba(201,168,76,.07) 0%,transparent 70%)}
+    .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25);color:var(--gold);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;padding:6px 16px;border-radius:20px;margin-bottom:28px}
+    .hero-eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .hero h1{font-family:var(--serif);font-size:clamp(40px,7vw,84px);line-height:1.05;font-weight:900;max-width:900px;margin:0 auto 24px}
+    .hero h1 span{background:linear-gradient(135deg,var(--gold),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .hero-sub{font-size:clamp(16px,2.5vw,20px);color:var(--muted);max-width:580px;margin:0 auto 48px;line-height:1.7}
+    .hero-actions{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+    .btn-primary{background:linear-gradient(135deg,var(--gold),#d4a830);color:#08080a;padding:16px 36px;border-radius:10px;font-weight:700;font-size:16px;text-decoration:none;transition:all .25s;box-shadow:0 4px 24px rgba(201,168,76,.3)}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(201,168,76,.45)}
+    .btn-secondary{border:1px solid rgba(201,168,76,.35);color:var(--gold);padding:16px 36px;border-radius:10px;font-weight:600;font-size:16px;text-decoration:none;transition:all .25s}
+    .btn-secondary:hover{background:rgba(201,168,76,.08);transform:translateY(-2px)}
+    .hero-trust{margin-top:56px;display:flex;gap:32px;flex-wrap:wrap;justify-content:center}
+    .trust-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+    .trust-item span:first-child{color:var(--gold)}
+
+    /* ── STATS ── */
+    .stats{padding:64px 40px;display:flex;gap:2px;overflow:hidden;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--surface)}
+    .stat{flex:1;text-align:center;padding:24px;border-right:1px solid var(--border)}
+    .stat:last-child{border-right:none}
+    .stat-num{font-family:var(--serif);font-size:42px;font-weight:900;color:var(--gold);line-height:1;display:block;margin-bottom:6px}
+    .stat-label{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+
+    /* ── HOW IT WORKS ── */
+    .section{padding:100px 40px;max-width:1100px;margin:0 auto}
+    .section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2.5px;color:var(--gold);margin-bottom:14px}
+    .section-title{font-family:var(--serif);font-size:clamp(30px,4vw,48px);font-weight:700;line-height:1.15;margin-bottom:16px}
+    .section-sub{font-size:17px;color:var(--muted);max-width:560px;line-height:1.7}
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:64px}
+    .step{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:36px 28px;position:relative;transition:border-color .25s}
+    .step:hover{border-color:rgba(201,168,76,.3)}
+    .step-num{width:48px;height:48px;border-radius:12px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:22px;font-weight:900;color:var(--gold);margin-bottom:20px}
+    .step h3{font-size:19px;font-weight:700;margin-bottom:10px;color:var(--text)}
+    .step p{font-size:14px;color:var(--muted);line-height:1.7}
+    .step-connector{position:absolute;right:-13px;top:50%;transform:translateY(-50%);color:var(--border);font-size:20px;z-index:1}
+
+    /* ── SERVICES ── */
+    .services-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;margin-top:56px}
+    .service-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;transition:all .25s;cursor:pointer}
+    .service-card:hover{border-color:rgba(201,168,76,.35);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+    .service-icon{font-size:32px;margin-bottom:16px;display:block}
+    .service-card h3{font-size:17px;font-weight:700;margin-bottom:8px}
+    .service-card p{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6}
+    .service-price{font-family:var(--serif);font-size:26px;font-weight:700;color:var(--gold)}
+    .service-price-sub{font-size:12px;color:var(--muted);font-family:var(--sans);font-weight:400}
+
+    /* ── HOW AI VERIFIES ── */
+    .verify-section{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:100px 40px}
+    .verify-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+    .verify-steps{margin-top:40px;display:flex;flex-direction:column;gap:16px}
+    .verify-step{display:flex;gap:16px;align-items:flex-start;padding:18px;background:var(--bg);border:1px solid var(--border);border-radius:10px}
+    .verify-step-icon{width:40px;height:40px;border-radius:8px;background:rgba(201,168,76,.12);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+    .verify-step-body h4{font-size:14px;font-weight:700;margin-bottom:4px}
+    .verify-step-body p{font-size:13px;color:var(--muted);line-height:1.6}
+    .verify-visual{background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:32px;text-align:center}
+    .verify-badge{display:inline-flex;align-items:center;gap:10px;background:rgba(76,175,80,.1);border:1px solid rgba(76,175,80,.3);color:#4caf50;padding:10px 20px;border-radius:8px;font-weight:700;font-size:14px;margin-bottom:24px}
+    .verify-map-mock{background:var(--surface2);border-radius:10px;height:180px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;border:1px solid var(--border);margin-bottom:20px;position:relative;overflow:hidden}
+    .verify-map-pin{position:absolute;font-size:28px;animation:float 3s ease-in-out infinite}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    .verify-metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .verify-metric{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center}
+    .verify-metric-val{font-size:20px;font-weight:700;color:var(--gold);display:block}
+    .verify-metric-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+
+    /* ── DRIVER CTA ── */
+    .driver-section{padding:100px 40px;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+    .driver-earnings{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px}
+    .driver-earnings h3{font-size:16px;font-weight:700;margin-bottom:20px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+    .earning-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border)}
+    .earning-row:last-child{border-bottom:none;padding-top:20px}
+    .earning-label{font-size:14px;color:var(--muted)}
+    .earning-val{font-size:16px;font-weight:700;color:var(--gold)}
+    .earning-total .earning-label{font-size:16px;color:var(--text);font-weight:600}
+    .earning-total .earning-val{font-family:var(--serif);font-size:28px}
+
+    /* ── PRICING ── */
+    .pricing-section{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:100px 40px}
+    .pricing-inner{max-width:1100px;margin:0 auto}
+    .pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:56px}
+    .pricing-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:36px;transition:all .25s;position:relative}
+    .pricing-card.featured{border-color:rgba(201,168,76,.5);background:rgba(201,168,76,.03)}
+    .pricing-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:#08080a;font-size:11px;font-weight:900;padding:4px 14px;border-radius:12px;text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
+    .pricing-title{font-size:14px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+    .pricing-price{font-family:var(--serif);font-size:48px;font-weight:900;color:var(--text);line-height:1;margin-bottom:6px}
+    .pricing-price sup{font-size:22px;vertical-align:super}
+    .pricing-period{font-size:13px;color:var(--muted);margin-bottom:24px}
+    .pricing-features{list-style:none;margin:0 0 32px;padding:0;display:flex;flex-direction:column;gap:10px}
+    .pricing-features li{font-size:14px;color:var(--muted);display:flex;align-items:center;gap:8px}
+    .pricing-features li::before{content:'✓';color:var(--gold);font-weight:700}
+    .pricing-btn{display:block;text-align:center;padding:13px;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;transition:all .2s}
+    .pricing-btn-outline{border:1px solid var(--border);color:var(--text)}
+    .pricing-btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+    .pricing-btn-gold{background:var(--gold);color:#08080a}
+    .pricing-btn-gold:hover{background:var(--gold-light)}
+
+    /* ── TESTIMONIALS ── */
+    .testimonials{padding:100px 40px;max-width:1100px;margin:0 auto}
+    .testimonials-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:56px}
+    .testimonial{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px}
+    .testimonial-text{font-size:15px;color:var(--text);line-height:1.7;margin-bottom:20px;font-style:italic}
+    .testimonial-text::before{content:'❝ ';color:var(--gold)}
+    .testimonial-author{display:flex;align-items:center;gap:12px}
+    .testimonial-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#8b6914);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#08080a;flex-shrink:0}
+    .testimonial-name{font-size:14px;font-weight:700}
+    .testimonial-role{font-size:12px;color:var(--muted)}
+    .stars{color:var(--gold);font-size:13px;margin-bottom:16px}
+
+    /* ── ENTERPRISE ── */
+    .enterprise-section{padding:100px 40px;max-width:1100px;margin:0 auto;text-align:center}
+    .enterprise-logos{display:flex;gap:32px;justify-content:center;flex-wrap:wrap;margin:48px 0;opacity:.5}
+    .enterprise-logo{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:2px;padding:12px 20px;border:1px solid var(--border);border-radius:8px}
+    .enterprise-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px}
+    .enterprise-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px;text-align:left}
+    .enterprise-item h3{font-size:15px;font-weight:700;margin-bottom:8px}
+    .enterprise-item p{font-size:13px;color:var(--muted);line-height:1.6}
+    .enterprise-item .tag{display:inline-block;margin-top:12px;font-size:11px;font-weight:700;color:var(--gold);background:rgba(201,168,76,.1);padding:3px 10px;border-radius:4px}
+
+    /* ── FINAL CTA ── */
+    .final-cta{padding:120px 40px;text-align:center;position:relative;overflow:hidden}
+    .final-cta::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 50% 50%,rgba(201,168,76,.06) 0%,transparent 70%)}
+    .final-cta h2{font-family:var(--serif);font-size:clamp(32px,5vw,60px);font-weight:900;line-height:1.1;max-width:700px;margin:0 auto 20px}
+    .final-cta p{font-size:18px;color:var(--muted);max-width:480px;margin:0 auto 48px;line-height:1.7}
+    .final-cta-actions{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+
+    /* ── FOOTER ── */
+    footer{background:var(--surface);border-top:1px solid var(--border);padding:60px 40px 32px}
+    .footer-inner{max-width:1100px;margin:0 auto}
+    .footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
+    .footer-brand-name{font-family:var(--serif);font-size:22px;color:var(--gold);font-weight:700;margin-bottom:12px}
+    .footer-brand-desc{font-size:13px;color:var(--muted);line-height:1.7;max-width:260px}
+    .footer-col h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:16px}
+    .footer-col a{display:block;font-size:13px;color:var(--muted);text-decoration:none;margin-bottom:10px;transition:color .15s}
+    .footer-col a:hover{color:var(--gold)}
+    .footer-bottom{border-top:1px solid var(--border);padding-top:24px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
+    .tleo-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);border:1px solid var(--border);padding:4px 10px;border-radius:6px}
+    .tleo-badge span{color:var(--gold)}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:900px){
+      nav{padding:16px 20px}
+      .nav-links{display:none}
+      .steps{grid-template-columns:1fr}
+      .step-connector{display:none}
+      .verify-inner,.driver-section{grid-template-columns:1fr;gap:48px}
+      .pricing-grid,.testimonials-grid,.enterprise-grid{grid-template-columns:1fr}
+      .stats{flex-wrap:wrap}
+      .stat{flex:1 1 40%;border-right:none;border-bottom:1px solid var(--border)}
+      .footer-top{grid-template-columns:1fr 1fr;gap:32px}
+      .footer-bottom{flex-direction:column;gap:12px;text-align:center}
+    }
+    @media(max-width:480px){
+      .section,.verify-section>*,.enterprise-section,.testimonials,.final-cta{padding-left:20px;padding-right:20px}
+      .hero{padding:100px 20px 60px}
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-brand" href="#">
+    <span class="nav-brand-icon">⚱️</span>
+    <span class="nav-brand-name">GraveFlow</span>
+  </a>
+  <div class="nav-links">
+    <a href="#how-it-works">How It Works</a>
+    <a href="#services">Services</a>
+    <a href="#drivers">Drive With Us</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#enterprise">Enterprise</a>
+  </div>
+  <a class="nav-cta" href="rider.html">Get Started</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow" data-analytics-segment="b2b-enterprise"><span class="hero-eyebrow-dot"></span> The Enterprise Standard for Cemetery Care</div>
+  <h1 data-analytics-intent="hero-headline">Scale cemetery maintenance<br/><span>with AI verification.</span></h1>
+  <p class="hero-sub" data-analytics-intent="hero-subheadline">GraveFlow connects municipalities, diocese networks, and enterprise partners with a distributed fleet of elite, verified caregivers. Track every visit with autonomous GPS fencing and AI confirmation.</p>
+  <div class="hero-actions" data-analytics-funnel="b2b-top-of-funnel">
+    <a class="btn-primary" href="enterprise.html" data-analytics-click="enterprise-conversion">Partner with GraveFlow</a>
+    <a class="btn-secondary" href="rider.html" data-analytics-click="b2c-scroll-intent">For Families</a>
+  </div>
+  <div class="hero-trust">
+    <div class="trust-item"><span>📍</span><span>GPS-verified at the grave</span></div>
+    <div class="trust-item"><span>🤖</span><span>AI photo confirmation</span></div>
+    <div class="trust-item"><span>🔒</span><span>Escrow-protected payments</span></div>
+    <div class="trust-item"><span>❤️</span><span>Powered by The Love Effect OS</span></div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat"><span class="stat-num">2.7M</span><span class="stat-label">Americans pass each year</span></div>
+  <div class="stat"><span class="stat-num">68%</span><span class="stat-label">Families live 100+ miles away</span></div>
+  <div class="stat"><span class="stat-num">$25</span><span class="stat-label">Starting price per visit</span></div>
+  <div class="stat"><span class="stat-num">15m</span><span class="stat-label">GPS geofence precision</span></div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how-it-works">
+  <div class="section-label">Simple Process</div>
+  <div class="section-title">Three steps to peace of mind</div>
+  <p class="section-sub">From search to verified visit in minutes. No account needed to browse — pay only when you're ready.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>Search the Grave</h3>
+      <p>Enter your loved one's name. Our engine searches BillionGraves, FamilySearch, and 10 million+ GPS-tagged cemetery records to find the exact plot.</p>
+      <div class="step-connector">→</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>Choose & Pay</h3>
+      <p>Select your service — quick visit, cleaning, flowers, or a full memorial. Pay securely via Stripe or crypto. Funds are held in escrow until verified.</p>
+      <div class="step-connector">→</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>Verified & Done</h3>
+      <p>A local driver visits the grave. The Love Effect OS checks GPS position, time of day, and AI-analyzes the photo. Escrow releases on confirmation.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="section" id="services" style="padding-top:0">
+  <div class="section-label">What We Offer</div>
+  <div class="section-title">Every act of care, delivered</div>
+  <p class="section-sub">Each service is GPS-confirmed and photo-documented. You receive a full report after every visit.</p>
+  <div class="services-grid">
+    <div class="service-card">
+      <span class="service-icon">🌿</span>
+      <h3>Quick Visit</h3>
+      <p>A driver visits the plot, confirms it's in good condition, and sends you a photo. 15 minutes of care.</p>
+      <div class="service-price">$25 <span class="service-price-sub">/ visit</span></div>
+    </div>
+    <div class="service-card">
+      <span class="service-icon">✨</span>
+      <h3>Headstone Cleaning</h3>
+      <p>Gentle cleaning of the headstone surface, removal of moss and debris, and a detailed before/after photo set.</p>
+      <div class="service-price">$45 <span class="service-price-sub">/ visit</span></div>
+    </div>
+    <div class="service-card">
+      <span class="service-icon">💐</span>
+      <h3>Flower Placement</h3>
+      <p>Fresh flowers placed at the grave on your behalf. Choose a seasonal arrangement or a specific flower type.</p>
+      <div class="service-price">$35 <span class="service-price-sub">/ visit</span></div>
+    </div>
+    <div class="service-card" style="border-color:rgba(201,168,76,.3)">
+      <span class="service-icon">🏛️</span>
+      <h3>Full Memorial Visit</h3>
+      <p>45 minutes on-site. Cleaning, flowers, prayer or moment of silence, full photo report, and AI-generated summary sent to your email.</p>
+      <div class="service-price">$95 <span class="service-price-sub">/ visit</span></div>
+    </div>
+    <div class="service-card">
+      <span class="service-icon">🎖️</span>
+      <h3>Military Honor Visit</h3>
+      <p>Respectful visit with American flag placement, headstone cleaning, and a solemn documented tribute for veterans.</p>
+      <div class="service-price">$75 <span class="service-price-sub">/ visit</span></div>
+    </div>
+    <div class="service-card">
+      <span class="service-icon">📅</span>
+      <h3>Annual Care Package</h3>
+      <p>Quarterly visits throughout the year — spring, summer, fall, and holiday. Best value for ongoing care.</p>
+      <div class="service-price">$299 <span class="service-price-sub">/ year</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW AI VERIFIES -->
+<div class="verify-section">
+  <div class="verify-inner">
+    <div>
+      <div class="section-label">The Love Effect OS</div>
+      <div class="section-title">Every visit verified by AI</div>
+      <p class="section-sub">We built a proprietary verification engine that ensures every visit is real, legitimate, and at the right location — before a single dollar leaves escrow.</p>
+      <div class="verify-steps">
+        <div class="verify-step">
+          <div class="verify-step-icon">📍</div>
+          <div class="verify-step-body">
+            <h4>GPS Geofencing</h4>
+            <p>Driver must be within 15 meters of the exact GPS coordinates of the grave. No exceptions.</p>
+          </div>
+        </div>
+        <div class="verify-step">
+          <div class="verify-step-icon">🤖</div>
+          <div class="verify-step-body">
+            <h4>AI Photo Analysis</h4>
+            <p>Local vision AI (LLaVA) analyzes the submitted photo to confirm a headstone or grave marker is present.</p>
+          </div>
+        </div>
+        <div class="verify-step">
+          <div class="verify-step-icon">🕐</div>
+          <div class="verify-step-body">
+            <h4>Time-of-Day Check</h4>
+            <p>Visits must occur during daylight hours (6am–8pm). Night submissions are automatically flagged.</p>
+          </div>
+        </div>
+        <div class="verify-step">
+          <div class="verify-step-icon">🔒</div>
+          <div class="verify-step-body">
+            <h4>Escrow Release</h4>
+            <p>Only after all checks pass does the Love Effect OS release the escrowed funds to the driver.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="verify-visual">
+        <div class="verify-badge">✅ Visit Verified</div>
+        <div class="verify-map-mock">
+          <div class="verify-map-pin" style="top:35%;left:48%">📍</div>
+          <span>GPS Map View</span>
+        </div>
+        <div class="verify-metrics">
+          <div class="verify-metric"><span class="verify-metric-val">4.2m</span><span class="verify-metric-label">Distance from plot</span></div>
+          <div class="verify-metric"><span class="verify-metric-val">2:14pm</span><span class="verify-metric-label">Time of visit</span></div>
+          <div class="verify-metric"><span class="verify-metric-val">98%</span><span class="verify-metric-label">AI confidence</span></div>
+          <div class="verify-metric"><span class="verify-metric-val">✅</span><span class="verify-metric-label">Escrow released</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DRIVER SECTION -->
+<section class="driver-section" id="drivers">
+  <div>
+    <div class="section-label">Drive With GraveFlow</div>
+    <div class="section-title">Turn compassion into income</div>
+    <p style="font-size:16px;color:var(--muted);line-height:1.7;margin:16px 0 32px;max-width:440px">Set your own hours. Work near home. Earn real money doing meaningful work — visiting cemeteries, caring for graves, and bringing peace to families who can't be there.</p>
+    <a class="btn-primary" href="driver.html">Become a Driver</a>
+    <p style="font-size:13px;color:var(--muted);margin-top:16px">No experience required. Just a phone, transportation, and a compassionate heart.</p>
+  </div>
+  <div class="driver-earnings">
+    <h3>Weekly Earnings Estimate</h3>
+    <div class="earning-row">
+      <span class="earning-label">Quick visits × 5</span>
+      <span class="earning-val">$102.50</span>
+    </div>
+    <div class="earning-row">
+      <span class="earning-label">Cleanings × 3</span>
+      <span class="earning-val">$110.70</span>
+    </div>
+    <div class="earning-row">
+      <span class="earning-label">Memorial visits × 2</span>
+      <span class="earning-val">$155.80</span>
+    </div>
+    <div class="earning-row">
+      <span class="earning-label">Flower placements × 4</span>
+      <span class="earning-val">$114.80</span>
+    </div>
+    <div class="earning-row earning-total">
+      <span class="earning-label">14 gigs / week</span>
+      <span class="earning-val">$483.80</span>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<div class="pricing-section" id="pricing">
+  <div class="pricing-inner">
+    <div style="text-align:center">
+      <div class="section-label">Simple Pricing</div>
+      <div class="section-title">Pay per visit, or go premium</div>
+      <p class="section-sub" style="margin:0 auto">No subscriptions required. Book a single visit anytime, or upgrade to GraveFlow+ for priority care and savings.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="pricing-title">Pay As You Go</div>
+        <div class="pricing-price"><sup>$</sup>25</div>
+        <div class="pricing-period">per visit, starting price</div>
+        <ul class="pricing-features">
+          <li>Any service type</li>
+          <li>GPS-verified proof</li>
+          <li>Photo report</li>
+          <li>Stripe or crypto payment</li>
+          <li>1 saved loved one</li>
+        </ul>
+        <a class="pricing-btn pricing-btn-outline" href="rider.html">Book Now</a>
+      </div>
+      <div class="pricing-card featured">
+        <div class="pricing-badge">Most Popular</div>
+        <div class="pricing-title">GraveFlow+</div>
+        <div class="pricing-price"><sup>$</sup>9<span style="font-size:24px">.99</span></div>
+        <div class="pricing-period">per month · $89/year</div>
+        <ul class="pricing-features">
+          <li>Everything in Pay As You Go</li>
+          <li>5% off every order</li>
+          <li>Up to 20 loved ones saved</li>
+          <li>Annual memorial reminders</li>
+          <li>Priority dispatch (&lt;4 hrs)</li>
+          <li>1-year photo archive</li>
+          <li>AI memorial summary</li>
+        </ul>
+        <a class="pricing-btn pricing-btn-gold" href="rider.html">Start Free Trial</a>
+      </div>
+      <div class="pricing-card">
+        <div class="pricing-title">Enterprise</div>
+        <div class="pricing-price"><sup>$</sup>299</div>
+        <div class="pricing-period">per month, starting</div>
+        <ul class="pricing-features">
+          <li>White-label API access</li>
+          <li>Branded rider interface</li>
+          <li>Volume gig bundles</li>
+          <li>Dedicated account manager</li>
+          <li>SLA + uptime guarantee</li>
+          <li>Estate services integration</li>
+        </ul>
+        <a class="pricing-btn pricing-btn-outline" href="mailto:enterprise@graveflow.app">Contact Sales</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <div class="section-label">From Families</div>
+  <div class="section-title">They couldn't be there. We were.</div>
+  <div class="testimonials-grid">
+    <div class="testimonial">
+      <div class="stars">★★★★★</div>
+      <p class="testimonial-text">My father is buried in Georgia and I'm in Seattle. GraveFlow sent me photos within 3 hours of ordering. I cried. It felt like I was there.</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">M</div>
+        <div><div class="testimonial-name">Margaret T.</div><div class="testimonial-role">Family member · Seattle, WA</div></div>
+      </div>
+    </div>
+    <div class="testimonial">
+      <div class="stars">★★★★★</div>
+      <p class="testimonial-text">I was skeptical at first, but the GPS verification and the photo proof made me trust it completely. They cleaned my mom's headstone beautifully.</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">R</div>
+        <div><div class="testimonial-name">Robert K.</div><div class="testimonial-role">GraveFlow+ member · Chicago, IL</div></div>
+      </div>
+    </div>
+    <div class="testimonial">
+      <div class="stars">★★★★★</div>
+      <p class="testimonial-text">As a driver, I earn $400–500 a week on my own schedule. The work is meaningful and the app makes everything simple. Best gig I've ever had.</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">D</div>
+        <div><div class="testimonial-name">DeShawn M.</div><div class="testimonial-role">GraveFlow Driver · Atlanta, GA</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ENTERPRISE -->
+<section class="enterprise-section" id="enterprise">
+  <div class="section-label">B2B & Enterprise</div>
+  <div class="section-title">Built for the funeral industry</div>
+  <p class="section-sub" style="margin:0 auto 0">Funeral homes, hospices, and estate attorneys use GraveFlow to offer ongoing grave care as a premium service to their clients.</p>
+  <div class="enterprise-logos">
+    <div class="enterprise-logo">Funeral Homes</div>
+    <div class="enterprise-logo">Hospice Centers</div>
+    <div class="enterprise-logo">Estate Attorneys</div>
+    <div class="enterprise-logo">Memorial Parks</div>
+    <div class="enterprise-logo">Genealogy Platforms</div>
+  </div>
+  <div class="enterprise-grid">
+    <div class="enterprise-item">
+      <h3>🔌 White-Label API</h3>
+      <p>Embed GraveFlow's dispatch and verification engine under your own brand. Full REST API with webhooks.</p>
+      <span class="tag">From $299/mo</span>
+    </div>
+    <div class="enterprise-item">
+      <h3>📦 Gig Bundles</h3>
+      <p>Pre-purchase gig credits at volume discounts. Offer grave care as part of your bereavement service package.</p>
+      <span class="tag">From $500/mo</span>
+    </div>
+    <div class="enterprise-item">
+      <h3>🗂️ Estate Integration</h3>
+      <p>API-access to grave location, condition reports, and photo archives for estate administration workflows.</p>
+      <span class="tag">$0.50/record</span>
+    </div>
+  </div>
+  <div style="margin-top:48px">
+    <a class="btn-primary" href="mailto:enterprise@graveflow.app">Talk to Enterprise Sales →</a>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+  <h2>Someone is waiting<br/>for a visit.</h2>
+  <p>Order in 2 minutes. A driver will be there today. Every visit verified by AI, powered by love.</p>
+  <div class="final-cta-actions">
+    <a class="btn-primary" href="rider.html">Order a Visit Now</a>
+    <a class="btn-secondary" href="driver.html">Become a Driver</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand-name">⚱️ GraveFlow</div>
+        <p class="footer-brand-desc">On-demand cemetery care, verified by AI. Connecting families with local drivers who show up when you can't.</p>
+        <div style="margin-top:20px">
+          <div class="tleo-badge">Powered by <span>❤️ The Love Effect OS</span></div>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <a href="rider.html">Order a Visit</a>
+        <a href="driver.html">Become a Driver</a>
+        <a href="admin.html">Admin Dashboard</a>
+        <a href="#pricing">Pricing</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="docs/index.html">Documents</a>
+        <a href="docs/pitch-deck.html">Investors</a>
+        <a href="mailto:enterprise@graveflow.app">Enterprise</a>
+        <a href="mailto:hello@graveflow.app">Contact</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="docs/terms.html">Terms of Service</a>
+        <a href="docs/privacy.html">Privacy Policy</a>
+        <a href="docs/driver-agreement.html">Driver Agreement</a>
+        <a href="docs/acceptable-use.html">Acceptable Use</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 GraveFlow Inc. · Delaware C-Corporation · All rights reserved.</span>
+      <span>invest@graveflow.app · enterprise@graveflow.app</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

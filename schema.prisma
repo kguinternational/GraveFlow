@@ -1,0 +1,75 @@
+Created At: 2026-07-22T14:38:02Z
+Completed At: 2026-07-22T14:38:02Z
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String   @id
+  name          String
+  email         String   @unique
+  role          String
+  callsign      String?
+  walletAddress String?
+  passwordHash  String
+  createdAt     DateTime @default(now())
+}
+
+model Gig {
+  id              String   @id
+  service         String
+  description     String?
+  price           Float
+  payout          Float
+  status          String
+  latitude        Float
+  longitude       Float
+  plotNumber      String?
+  cemetery        String
+  driverId        String?
+  riderId         String?
+  imageUrl        String?
+  ipfsCid         String?
+  escrowWallet    String
+  transactionHash String?
+  loveScore       Float?
+  loveLabel       String?
+  timestamp       DateTime @default(now())
+}
+
+model AnomalyLog {
+  id        String   @id @default(uuid())
+  gigId     String
+  reason    String
+  imageUrl  String?
+  timestamp DateTime @default(now())
+}
+
+model TransactionLedger {
+  id        String   @id @default(uuid())
+  type      String   // e.g., "PAYOUT", "REFUND"
+  driverId  String
+  amount    Float
+  gigId     String
+  timestamp DateTime @default(now())
+}
+
+model GeneratedMedia {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // "image", "video", "faceswap"
+  prompt    String
+  model     String
+  mediaUrl  String?
+  inputUrl  String?
+  faceUrl   String?
+  status    String   // "IN_PROGRESS", "COMPLETED", "FAILED"
+  error     String?
+  timestamp DateTime @default(now())
+}
+

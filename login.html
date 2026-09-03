@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GraveFlow — Sovereign Login</title>
+  <style>
+    :root {
+      --bg:        #08080a;
+      --panel:     #121216;
+      --panel-alt: #1a1a22;
+      --accent:    #c9a84c;
+      --accent-hover: #dbb85c;
+      --accent-dim: rgba(201, 168, 76, 0.15);
+      --text:      #f0f0f4;
+      --muted:     #9090a0;
+      --border:    #22222c;
+      --border-glow: rgba(201, 168, 76, 0.4);
+      --radius:    8px;
+      --transition: 0.25s ease;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Background Gradients */
+    .bg-gradient {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse at 10% 10%, rgba(201, 168, 76, 0.06) 0%, transparent 60%),
+        radial-gradient(ellipse at 90% 90%, rgba(201, 168, 76, 0.04) 0%, transparent 60%),
+        radial-gradient(ellipse at 50% 50%, rgba(18, 14, 8, 0.7) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 460px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 40px 32px;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.8), 0 0 20px rgba(201, 168, 76, 0.03);
+      animation: formFadeIn 0.5s ease;
+    }
+
+    @keyframes formFadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Logo / Header */
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .logo {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .logo-accent {
+      color: var(--accent);
+    }
+
+    .tagline {
+      font-size: 0.9rem;
+      color: var(--muted);
+      letter-spacing: 0.2px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 12px;
+      cursor: pointer;
+      transition: color var(--transition), border-color var(--transition);
+      position: relative;
+    }
+
+    .tab-btn.active {
+      color: var(--accent);
+    }
+
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: var(--accent);
+      box-shadow: 0 0 10px var(--border-glow);
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 8px;
+      letter-spacing: 0.3px;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.95rem;
+      padding: 12px 16px;
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-dim);
+    }
+
+    /* Error / Success Banners */
+    .banner {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      margin-bottom: 24px;
+      display: none;
+      line-height: 1.5;
+    }
+
+    .banner-error {
+      background: rgba(220, 53, 69, 0.1);
+      border: 1px solid rgba(220, 53, 69, 0.3);
+      color: #ff6b6b;
+    }
+
+    .banner-success {
+      background: rgba(40, 167, 69, 0.1);
+      border: 1px solid rgba(40, 167, 69, 0.3);
+      color: #2ed573;
+    }
+
+    /* Submit Button */
+    .btn-submit {
+      width: 100%;
+      background: var(--accent);
+      color: #08080a;
+      border: none;
+      border-radius: var(--radius);
+      padding: 14px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+      margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 4px 18px rgba(201, 168, 76, 0.3);
+    }
+
+    .btn-submit:active {
+      transform: translateY(1px);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Switch fields based on mode */
+    .reg-only {
+      display: none;
+    }
+
+    .driver-only {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-gradient"></div>
+
+  <div class="wrapper">
+    <header class="header">
+      <h1 class="logo" style="display: flex; justify-content: center; align-items: center;">
+        <img src="assets/logo.png" style="height: 1.2em; margin-right: 12px; border-radius: 50%; border:2px solid #007aff; box-shadow:0 0 10px #007aff;" alt=""/>
+        <span class="logo-accent">GraveFlow</span>
+      </h1>
+      <p class="tagline" id="tagline-text">Access the sovereign care network</p>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-login" onclick="setMode('login')">Log In</button>
+      <button class="tab-btn" id="tab-register" onclick="setMode('register')">Register</button>
+    </div>
+
+    <div id="banner-error" class="banner banner-error"></div>
+    <div id="banner-success" class="banner banner-success"></div>
+
+    <form id="auth-form" onsubmit="handleSubmit(event)">
+      <!-- Name Field (Register Only) -->
+      <div class="form-group reg-only" id="group-name">
+        <label class="form-label" for="input-name">Full Name</label>
+        <input class="form-input" type="text" id="input-name" placeholder="John Doe" autocomplete="name" />
+      </div>
+
+      <!-- Email Field -->
+      <div class="form-group">
+        <label class="form-label" for="input-email">Email Address</label>
+        <input class="form-input" type="email" id="input-email" placeholder="name@example.com" autocomplete="email" required />
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label class="form-label" for="input-password">Password</label>
+        <input class="form-input" type="password" id="input-password" placeholder="••••••••" autocomplete="current-password" required />
+      </div>
+
+      <!-- Role Selector (Register Only) -->
+      <div class="form-group reg-only" id="group-role">
+        <label class="form-label" for="select-role">Account Role</label>
+        <select class="form-select" id="select-role" onchange="handleRoleChange()">
+          <option value="driver">Driver (Gig Provider)</option>
+          <option value="admin">Operations Admin</option>
+          <option value="csuite">Executive AI / Board Member</option>
+          <option value="enterprise">Enterprise Partner</option>
+        </select>
+      </div>
+
+      <!-- Driver Callsign Field (Register & Driver Only) -->
+      <div class="form-group driver-only" id="group-callsign">
+        <label class="form-label" for="input-callsign">Driver Callsign (Optional)</label>
+        <input class="form-input" type="text" id="input-callsign" placeholder="e.g. PATRIOT_01" />
+      </div>
+
+      <!-- Driver Wallet Address Field (Register & Driver Only) -->
+      <div class="form-group driver-only" id="group-wallet">
+        <label class="form-label" for="input-wallet">Payout Wallet or Unstoppable Domain</label>
+        <input class="form-input" type="text" id="input-wallet" placeholder="e.g. name.crypto or 0x..." oninput="debounceResolveDomain(this.value)" />
+        <div id="wallet-resolution-status" style="font-size: 11px; margin-top: 6px; display: none;"></div>
+      </div>
+
+      <button class="btn-submit" type="submit" id="btn-text">Sign In</button>
+    </form>
+  </div>
+
+  <script>
+    const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+      ? 'http://localhost:8002'
+      : window.location.origin + '/api';
+
+    // Parse URL Query Params
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectParam = urlParams.get('redirect');
+    const rolesParam = urlParams.get('roles');
+    const errorParam = urlParams.get('error');
+
+    let mode = 'login'; // 'login' or 'register'
+
+    // Initialize page states
+    if (errorParam === 'unauthorized') {
+      showError('🚨 Access Denied: You do not have permissions for that page.');
+    }
+
+    // Pre-fill role in selector if passed via URL
+    if (rolesParam) {
+      const allowedRoles = rolesParam.split(',');
+      if (allowedRoles.length > 0) {
+        const select = document.getElementById('select-role');
+        // Select first matching role
+        for (let opt of select.options) {
+          if (allowedRoles.includes(opt.value)) {
+            select.value = opt.value;
+            break;
+          }
+        }
+      }
+    }
+
+    function setMode(newMode) {
+      mode = newMode;
+      document.getElementById('banner-error').style.display = 'none';
+      document.getElementById('banner-success').style.display = 'none';
+
+      const tabLogin = document.getElementById('tab-login');
+      const tabRegister = document.getElementById('tab-register');
+      const regFields = document.querySelectorAll('.reg-only');
+      const submitBtn = document.getElementById('btn-text');
+      const tagline = document.getElementById('tagline-text');
+
+      if (mode === 'login') {
+        tabLogin.classList.add('active');
+        tabRegister.classList.remove('active');
+        regFields.forEach(el => el.style.display = 'none');
+        document.getElementById('group-callsign').style.display = 'none';
+        document.getElementById('group-wallet').style.display = 'none';
+        submitBtn.textContent = 'Sign In';
+        tagline.textContent = 'Access the sovereign care network';
+      } else {
+        tabLogin.classList.remove('active');
+        tabRegister.classList.add('active');
+        regFields.forEach(el => el.style.display = 'block');
+        handleRoleChange(); // show callsign and wallet if driver selected
+        submitBtn.textContent = 'Create Account';
+        tagline.textContent = 'Join the sovereign care network';
+      }
+    }
+
+    function handleRoleChange() {
+      const role = document.getElementById('select-role').value;
+      const callsignFields = document.getElementById('group-callsign');
+      const walletFields = document.getElementById('group-wallet');
+      if (mode === 'register' && role === 'driver') {
+        callsignFields.style.display = 'block';
+        walletFields.style.display = 'block';
+      } else {
+        callsignFields.style.display = 'none';
+        walletFields.style.display = 'none';
+      }
+    }
+
+    let resolveTimeout = null;
+    let resolvedWalletAddress = null;
+
+    function debounceResolveDomain(value) {
+      clearTimeout(resolveTimeout);
+      const statusEl = document.getElementById('wallet-resolution-status');
+      
+      const val = value.trim();
+      if (!val) {
+        statusEl.style.display = 'none';
+        resolvedWalletAddress = null;
+        return;
+      }
+
+      // If it contains a dot, resolve as Web3 domain
+      if (val.includes('.') && val.split('.').pop().length >= 1) {
+        statusEl.textContent = '🔮 Resolving Web3 domain...';
+        statusEl.style.color = 'var(--accent)';
+        statusEl.style.display = 'block';
+        
+        resolveTimeout = setTimeout(async () => {
+          try {
+            const res = await fetch(`${API_BASE}/auth/resolve-unstoppable`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ domain: val })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+              resolvedWalletAddress = data.address;
+              statusEl.textContent = `✓ Resolved: ${data.address.substring(0, 8)}...${data.address.substring(data.address.length - 6)}`;
+              statusEl.style.color = '#2ed573';
+            } else {
+              resolvedWalletAddress = null;
+              statusEl.textContent = `❌ Resolution failed: ${data.error || 'Unknown error'}`;
+              statusEl.style.color = '#ff6b6b';
+            }
+          } catch (err) {
+            resolvedWalletAddress = null;
+            statusEl.textContent = `❌ Network error resolving domain`;
+            statusEl.style.color = '#ff6b6b';
+          }
+        }, 800);
+      } else {
+        statusEl.style.display = 'none';
+        resolvedWalletAddress = null;
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('banner-error');
+      el.textContent = msg;
+      el.style.display = 'block';
+      document.getElementById('banner-success').style.display = 'none';
+    }
+
+    function showSuccess(msg) {
+      const el = document.getElementById('banner-success');
+      el.textContent = msg;
+      el.style.display = 'block';
+      document.getElementById('banner-error').style.display = 'none';
+    }
+
+    async function handleSubmit(event) {
+      event.preventDefault();
+      document.getElementById('banner-error').style.display = 'none';
+      
+      const email = document.getElementById('input-email').value.trim();
+      const password = document.getElementById('input-password').value;
+      const submitBtn = document.getElementById('btn-submit');
+      
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        let response;
+        if (mode === 'login') {
+          response = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+        } else {
+          const name = document.getElementById('input-name').value.trim();
+          const role = document.getElementById('select-role').value;
+          const callsign = document.getElementById('input-callsign').value.trim() || undefined;
+          
+          const walletInput = document.getElementById('input-wallet').value.trim();
+          let walletAddress = walletInput || undefined;
+          if (walletInput.includes('.')) {
+              walletAddress = resolvedWalletAddress || walletInput;
+          }
+          
+          if (!name) throw new Error('Please enter your full name.');
+
+          response = await fetch(`${API_BASE}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password, role, callsign, walletAddress })
+          });
+        }
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Authentication failed');
+        }
+
+        // Store tokens
+        localStorage.setItem('gf_token', data.token);
+        localStorage.setItem('gf_user', JSON.stringify(data.user));
+        
+        // Sync with existing legacy keys to prevent breaking client scripts
+        if (data.user.role === 'rider') {
+          localStorage.setItem('gf_rider_token', data.token);
+        } else if (data.user.role === 'driver') {
+          localStorage.setItem('graveflow_driver_id', data.user.callsign || data.user.id);
+        }
+
+        showSuccess('Authentication successful! Redirecting…');
+
+        setTimeout(() => {
+          let target = redirectParam || 'index.html';
+          // Sanitize target redirect to prevent open redirect vulnerabilities
+          if (target.startsWith('http://') || target.startsWith('https://')) {
+            target = 'index.html';
+          }
+          window.location.href = target;
+        }, 1000);
+
+      } catch (err) {
+        showError(err.message);
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

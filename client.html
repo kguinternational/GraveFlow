@@ -1,0 +1,1912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script type="importmap">
+  {
+    "imports": {
+      "livekit-client": "https://cdn.jsdelivr.net/npm/livekit-client@2.11.3/+esm",
+      "protobufjs": "https://cdn.jsdelivr.net/npm/protobufjs@7.5.0/+esm"
+    }
+  }
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GraveFlow — Rider</title>
+  <script>
+    window.REQUIRED_ROLES = ['rider'];
+  </script>
+  <script src="auth_guard.js"></script>
+  <script src="https://js.stripe.com/v3/"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.1/dist/ethers.umd.min.js"></script>
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0a0a;
+      --card:      #111111;
+      --card2:     #1a1a1a;
+      --accent:    #c9a84c;
+      --accent-dim:#a07c30;
+      --text:      #e8e8e8;
+      --text-sec:  #888888;
+      --success:   #4caf50;
+      --danger:    #f44336;
+      --border:    #2a2a2a;
+      --radius:    8px;
+      --font:      'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ===== HEADER ===== */
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .logo-text h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 1px;
+    }
+
+    .logo-text p {
+      font-size: 11px;
+      color: var(--text-sec);
+      letter-spacing: 0.5px;
+    }
+
+    /* Socket connection badge */
+    #connection-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-sec);
+      white-space: nowrap;
+    }
+
+    #connection-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--danger);
+      transition: background 0.3s;
+      flex-shrink: 0;
+    }
+
+    #connection-dot.connected { background: var(--success); }
+
+    /* ===== MAIN LAYOUT ===== */
+    main {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* ===== CARDS / PANELS ===== */
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--accent);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-title span { font-size: 16px; }
+
+    /* ===== FORMS / INPUTS ===== */
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-sec);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="email"] {
+      width: 100%;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 11px 14px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus {
+      border-color: var(--accent);
+    }
+
+    input[type="text"]::placeholder { color: var(--text-sec); }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 22px;
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      text-align: center;
+    }
+
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .btn-primary:hover:not(:disabled) { background: #d4b158; }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-full { width: 100%; }
+
+    /* ===== SEARCH ROW ===== */
+    .search-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .search-row input { flex: 1; }
+    .search-row .btn { flex-shrink: 0; }
+
+    /* ===== GRAVE RESULTS ===== */
+    #grave-results {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .grave-card {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .grave-card:hover { border-color: var(--accent); background: #1f1f1f; }
+
+    .grave-card.selected {
+      border-color: var(--accent);
+      background: #1f1a0e;
+    }
+
+    .grave-card h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .grave-card .meta {
+      font-size: 13px;
+      color: var(--text-sec);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .grave-card .meta span { display: flex; align-items: center; gap: 4px; }
+
+    /* ===== SERVICE CARDS ===== */
+    .service-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .service-card {
+      background: var(--card2);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+      text-align: center;
+    }
+
+    .service-card:hover { border-color: var(--accent-dim); }
+
+    .service-card.selected {
+      border-color: var(--accent);
+      background: #1f1a0e;
+    }
+
+    .service-card input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .service-card .svc-icon { font-size: 28px; margin-bottom: 8px; }
+
+    .service-card .svc-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .service-card .svc-price {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .service-card .selected-check {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 18px;
+      height: 18px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #000;
+      font-weight: 700;
+    }
+
+    .service-card.selected .selected-check { display: flex; }
+
+    /* ===== SELECTED SUMMARY ===== */
+    .selected-summary {
+      margin-top: 14px;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .selected-summary .sum-label {
+      font-size: 13px;
+      color: var(--text-sec);
+    }
+
+    .selected-summary .sum-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    /* ===== STRIPE CARD ELEMENT ===== */
+    #card-element {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 13px 14px;
+      transition: border-color 0.2s;
+    }
+
+    #card-element.StripeElement--focus { border-color: var(--accent); }
+
+    #card-errors {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--danger);
+      min-height: 18px;
+    }
+
+    /* ===== BANNERS ===== */
+    .banner {
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      font-size: 14px;
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .banner.show { display: flex; }
+
+    .banner-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+    .banner-body { flex: 1; }
+    .banner-body strong { display: block; margin-bottom: 2px; }
+
+    .banner-success {
+      background: #0a2a0a;
+      border: 1px solid var(--success);
+      color: #a5d6a7;
+    }
+
+    .banner-error {
+      background: #2a0a0a;
+      border: 1px solid var(--danger);
+      color: #ef9a9a;
+    }
+
+    /* ===== ORDER STATUS ===== */
+    #order-status-panel { display: none; }
+
+    .order-info {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+
+    .order-info .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .order-info .row:last-child { border-bottom: none; }
+    .order-info .row span:first-child { color: var(--text-sec); }
+    .order-info .row span:last-child { font-weight: 500; word-break: break-all; text-align: right; max-width: 60%; }
+
+    /* ===== SECTIONS (visibility) ===== */
+    .section-hidden { display: none; }
+
+    /* ===== LOADING SPINNER ===== */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    /* ===== CHAT WIDGET ===== */
+    #chat-fab {
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
+      width: 54px;
+      height: 54px;
+      background: var(--accent);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(201,168,76,0.4);
+      z-index: 200;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    #chat-fab:hover {
+      transform: scale(1.08);
+      box-shadow: 0 6px 28px rgba(201,168,76,0.5);
+    }
+
+    #chat-panel {
+      position: fixed;
+      bottom: 88px;
+      right: 16px;
+      width: min(360px, calc(100vw - 32px));
+      height: min(480px, calc(100vh - 120px));
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 199;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+      animation: slideUp 0.2s ease;
+    }
+
+    #chat-panel.open { display: flex; }
+
+    .chat-header {
+      background: var(--card2);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .chat-header-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chat-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-sec);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      padding: 2px;
+      transition: color 0.2s;
+    }
+
+    .chat-close-btn:hover { color: var(--text); }
+
+    #chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .chat-bubble {
+      max-width: 80%;
+      padding: 9px 13px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      word-break: break-word;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .chat-bubble.user {
+      align-self: flex-end;
+      background: var(--accent);
+      color: #000;
+      border-bottom-right-radius: 3px;
+    }
+
+    .chat-bubble.bot {
+      align-self: flex-start;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-bottom-left-radius: 3px;
+    }
+
+    .chat-bubble.typing {
+      color: var(--text-sec);
+      font-style: italic;
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 8px;
+      padding: 10px 12px;
+      border-top: 1px solid var(--border);
+      background: var(--card2);
+    }
+
+    #chat-input {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 8px 14px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 13px;
+      outline: none;
+    }
+
+    #chat-input:focus { border-color: var(--accent); }
+    #chat-input::placeholder { color: var(--text-sec); }
+
+    #chat-send {
+      background: var(--accent);
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+
+    #chat-send:hover { background: #d4b158; }
+    #chat-send:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ===== UTILITY ===== */
+    .mt-12 { margin-top: 12px; }
+    .mt-16 { margin-top: 16px; }
+    .flex-row { display: flex; align-items: center; gap: 8px; }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 16px 0;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 480px) {
+      main { padding: 16px 12px; gap: 16px; }
+      .panel { padding: 16px; }
+      .service-grid { grid-template-columns: 1fr; }
+      header { padding: 12px 14px; }
+      #chat-panel { right: 8px; width: calc(100vw - 16px); }
+    }
+
+    /* ===== AUTH PANEL ===== */
+    #auth-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    #auth-panel.hidden { display: none; }
+    .auth-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+      gap: 0;
+    }
+    .auth-tab {
+      flex: 1;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-sec);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+      font-family: var(--font);
+    }
+    .auth-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .auth-form { display: none; }
+    .auth-form.active { display: block; }
+    .auth-field {
+      margin-bottom: 14px;
+    }
+    .auth-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-sec);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .auth-field input {
+      width: 100%;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: var(--font);
+      outline: none;
+    }
+    .auth-field input:focus { border-color: var(--accent); }
+    .auth-error {
+      font-size: 13px;
+      color: var(--danger);
+      margin-bottom: 12px;
+      min-height: 18px;
+    }
+    .auth-user-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .auth-user-info {
+      font-size: 14px;
+    }
+    .auth-user-info strong { color: var(--accent); }
+    .auth-logout-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-sec);
+      font-size: 12px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .auth-logout-btn:hover { border-color: var(--danger); color: var(--danger); }
+    #main-content.locked {
+      pointer-events: none;
+      opacity: 0.35;
+      filter: blur(1px);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header>
+  <div class="logo">
+    <img src="assets/logo.png" class="logo-icon" style="background:none; border:2px solid #007aff; box-shadow:0 0 10px #007aff; object-fit: cover;" alt="Logo"/>
+    <div class="logo-text">
+      <h1>GraveFlow</h1>
+      <p>Memorial Service Network</p>
+    </div>
+  </div>
+  <div id="connection-status">
+    <div id="connection-dot"></div>
+    <span id="connection-label">Offline</span>
+  </div>
+</header>
+
+<!-- ===== MAIN ===== -->
+<main>
+
+<!-- ===== AUTH PANEL ===== -->
+<div id="auth-panel">
+  <!-- Logged-out state: tabs -->
+  <div id="auth-logged-out">
+    <div style="margin-bottom:16px;">
+      <div style="font-weight:700; font-size:16px; color:var(--text);">🔐 Sign in to book a service</div>
+      <div style="font-size:13px; color:var(--text-sec); margin-top:4px;">Create an account or log in to continue</div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Log In</button>
+      <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Register</button>
+    </div>
+
+    <!-- Login form -->
+    <div class="auth-form active" id="form-login">
+      <div class="auth-field"><label for="login-email">Email</label>
+        <input type="email" id="login-email" placeholder="your@email.com" autocomplete="email" /></div>
+      <div class="auth-field"><label for="login-password">Password</label>
+        <input type="password" id="login-password" placeholder="Your password" autocomplete="current-password" /></div>
+      <div class="auth-error" id="login-error"></div>
+      <button class="btn btn-primary btn-full" id="login-btn" onclick="doLogin()">Log In</button>
+    </div>
+
+    <!-- Register form -->
+    <div class="auth-form" id="form-register">
+      <div class="auth-field"><label for="reg-name">Full Name</label>
+        <input type="text" id="reg-name" placeholder="Jane Smith" autocomplete="name" /></div>
+      <div class="auth-field"><label for="reg-email">Email</label>
+        <input type="email" id="reg-email" placeholder="your@email.com" autocomplete="email" /></div>
+      <div class="auth-field"><label for="reg-password">Password</label>
+        <input type="password" id="reg-password" placeholder="Min. 8 characters" autocomplete="new-password" /></div>
+      <div class="auth-error" id="register-error"></div>
+      <button class="btn btn-primary btn-full" id="register-btn" onclick="doRegister()">Create Account</button>
+    </div>
+  </div>
+
+  <!-- Logged-in state: user bar -->
+  <div id="auth-logged-in" style="display:none;">
+    <div class="auth-user-bar" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+      <div class="auth-user-info">
+        ✅ Signed in as <strong id="auth-username">—</strong>
+      </div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <a href="media-studio.html" class="auth-logout-btn" style="text-decoration:none; display:inline-block; border-color:var(--accent); color:var(--accent);">🎬 Media Studio</a>
+        <button class="auth-logout-btn" onclick="doLogout()">Sign Out</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="main-content" class="locked">
+
+  <!-- Global banners -->
+  <div id="banner-success" class="banner banner-success" role="alert">
+    <div class="banner-icon">✅</div>
+    <div class="banner-body">
+      <strong id="banner-success-title">Success</strong>
+      <span id="banner-success-body"></span>
+    </div>
+  </div>
+
+  <div id="banner-error" class="banner banner-error" role="alert">
+    <div class="banner-icon">⚠️</div>
+    <div class="banner-body">
+      <strong id="banner-error-title">Notice</strong>
+      <span id="banner-error-body"></span>
+    </div>
+  </div>
+
+  <!-- 1. GRAVE SEARCH -->
+  <section class="panel" id="search-section">
+    <div class="panel-title"><span>🪦</span> Grave Search</div>
+    <label for="grave-search-input">Search by name of the deceased</label>
+    <div class="search-row">
+      <input
+        type="text"
+        id="grave-search-input"
+        placeholder="e.g. John Smith"
+        autocomplete="off"
+        maxlength="120"
+      />
+      <button class="btn btn-primary" id="search-btn" onclick="searchGraves()">
+        Search
+      </button>
+    </div>
+    <div id="search-status" style="font-size:13px; color:var(--text-sec); margin-top:10px; min-height:18px;"></div>
+    <div id="grave-results"></div>
+  </section>
+
+  <!-- 2. SERVICE SELECTION -->
+  <section class="panel section-hidden" id="service-section">
+    <div class="panel-title"><span>🌹</span> Select Service</div>
+    <div class="service-grid" id="service-grid">
+
+      <label class="service-card" data-service="Clean headstone" data-price="25" onclick="selectService(this)">
+        <input type="radio" name="service" value="clean_headstone" />
+        <div class="selected-check">✓</div>
+        <div class="svc-icon">🧽</div>
+        <div class="svc-name">Clean Headstone</div>
+        <div class="svc-price">$25</div>
+      </label>
+
+      <label class="service-card" data-service="Place flowers" data-price="35" onclick="selectService(this)">
+        <input type="radio" name="service" value="place_flowers" />
+        <div class="selected-check">✓</div>
+        <div class="svc-icon">💐</div>
+        <div class="svc-name">Place Flowers</div>
+        <div class="svc-price">$35</div>
+      </label>
+
+      <label class="service-card" data-service="Full memorial visit" data-price="75" onclick="selectService(this)">
+        <input type="radio" name="service" value="full_memorial" />
+        <div class="selected-check">✓</div>
+        <div class="svc-icon">🕯️</div>
+        <div class="svc-name">Full Memorial Visit</div>
+        <div class="svc-price">$75</div>
+      </label>
+
+      <label class="service-card" data-service="AI Holographic Visit" data-price="149" onclick="selectService(this)">
+        <input type="radio" name="service" value="ai_hologram" />
+        <div class="selected-check">✓</div>
+        <div class="svc-icon">✨</div>
+        <div class="svc-name">AI Holographic Visit</div>
+        <div class="svc-price">$149</div>
+      </label>
+
+    </div>
+
+    <div class="selected-summary" id="service-summary" style="display:none;">
+      <div>
+        <div class="sum-label">Selected Service</div>
+        <div id="summary-service-name" style="font-weight:600; font-size:15px;"></div>
+      </div>
+      <div class="sum-value" id="summary-service-price"></div>
+    </div>
+  </section>
+
+  <!-- 3. PAYMENT -->
+  <section class="panel section-hidden" id="payment-section">
+    <div class="panel-title"><span>💳</span> Payment</div>
+
+    <!-- Payment tabs -->
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+      <button class="btn btn-secondary" id="pay-method-stripe" onclick="selectPayMethod('stripe')" style="flex: 1; padding: 10px; font-weight:600;">💳 Credit Card</button>
+      <button class="btn btn-secondary" id="pay-method-crypto" onclick="selectPayMethod('crypto')" style="flex: 1; padding: 10px; font-weight:600;">🌐 Crypto Escrow</button>
+    </div>
+
+    <!-- Stripe Field -->
+    <div id="stripe-payment-fields" style="margin-bottom:14px;">
+      <label>Card Details</label>
+      <div id="card-element" style="background:#121216; padding:12px; border:1px solid #222226; border-radius:8px; margin-bottom:14px;"></div>
+      <div id="card-errors" role="alert" style="color:var(--accent); font-size:12px; margin-top:-10px; margin-bottom:10px;"></div>
+    </div>
+
+    <!-- Crypto Field -->
+    <div id="crypto-payment-fields" style="display:none; margin-bottom:15px; text-align:center; padding:14px; background:#121216; border:1px solid #222226; border-radius:8px;">
+      <p style="font-size:13px; color:var(--text-sec); margin-bottom:10px;">Pay via MetaMask on local Hardhat network.</p>
+      <button class="btn btn-secondary btn-full" id="connect-wallet-btn" onclick="connectWallet()" style="background:#f6851b; color:#fff; border:none; padding:10px;">Connect MetaMask</button>
+      <div id="wallet-info" style="font-size:12px; color:var(--accent); margin-top:8px; display:none; font-family:monospace;"></div>
+    </div>
+
+    <div class="order-info" id="payment-order-summary">
+      <div class="row"><span>Service</span><span id="pay-svc-name">—</span></div>
+      <div class="row"><span>Amount</span><span id="pay-svc-price">—</span></div>
+      <div class="row"><span>Grave</span><span id="pay-grave-name">—</span></div>
+      <div class="row"><span>Cemetery</span><span id="pay-cemetery">—</span></div>
+    </div>
+
+    <button class="btn btn-primary btn-full mt-12" id="pay-btn" onclick="handlePayment()">
+      Pay &amp; Dispatch Rider
+    </button>
+
+    <div id="payment-status" style="font-size:13px; color:var(--text-sec); margin-top:10px; min-height:18px; text-align:center;"></div>
+  </section>
+
+  <!-- 4. ORDER STATUS -->
+  <section class="panel" id="order-status-panel">
+    <div class="panel-title"><span>📡</span> Order Status</div>
+    <div class="order-info" id="order-detail-info">
+      <div class="row"><span>Order ID</span><span id="status-order-id">—</span></div>
+      <div class="row"><span>Service</span><span id="status-service">—</span></div>
+      <div class="row"><span>Cemetery</span><span id="status-cemetery">—</span></div>
+      <div class="row"><span>Plot</span><span id="status-plot">—</span></div>
+      <div class="row"><span>GPS</span><span id="status-gps">—</span></div>
+      <div class="row"><span>Payout</span><span id="status-payout">—</span></div>
+      <div class="row"><span>Escrow</span><span id="status-escrow">—</span></div>
+      <div class="row" id="love-score-row" style="display:none; transition: all 0.3s ease;"><span>Love Effect OS</span><span id="status-love-score">—</span></div>
+    </div>
+    <div id="status-map" style="height: 250px; border-radius: 8px; margin-top: 15px; border: 1px solid var(--border); display: none; z-index: 10;"></div>
+
+    <div id="proof-banner" class="banner banner-success" style="margin-top:12px;">
+      <div class="banner-icon">✅</div>
+      <div class="banner-body">
+        <strong>Proof Verified</strong>
+        <span id="proof-details"></span>
+      </div>
+    </div>
+
+    <div id="anomaly-banner" class="banner banner-error" style="margin-top:12px;">
+      <div class="banner-icon">🚨</div>
+      <div class="banner-body">
+        <strong>Anomaly Detected</strong>
+        <span id="anomaly-reason"></span>
+      </div>
+    </div>
+
+    <!-- Premium Dispute Manual Override Panel -->
+    <div id="dispute-resolution-panel" style="display:none; margin-top:20px; padding:20px; border-radius:var(--radius); border:1px solid rgba(201,168,76,0.3); background:var(--card2); backdrop-filter:blur(10px);">
+      <div style="font-family:var(--font); font-weight:700; color:var(--accent); font-size:16px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+        <span>⚖️</span> Hybrid Escrow Review Required
+      </div>
+      <div style="font-size:13px; color:var(--text-sec); margin-bottom:16px; line-height:1.5;">
+        The AI has quarantined this service submission. You can visually inspect the photo proof and choose to release the payout manually or request a full refund.
+      </div>
+      
+      <!-- Proof image container -->
+      <div style="width:100%; border-radius:var(--radius); overflow:hidden; border:1px solid var(--border); background:#000; margin-bottom:16px; position:relative; min-height:200px; display:flex; align-items:center; justify-content:center;">
+        <img id="dispute-proof-img" src="" alt="Driver proof photo" style="max-width:100%; max-height:350px; object-fit:contain; display:none;" />
+        <div id="dispute-proof-placeholder" style="color:var(--text-sec); font-size:13px; font-style:italic;">Loading proof image...</div>
+      </div>
+      
+      <!-- Buttons -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <button class="btn btn-primary" onclick="resolveDispute('approve')" style="padding:10px 14px; font-size:13px; cursor:pointer;">Approve &amp; Release Funds</button>
+        <button class="btn" onclick="resolveDispute('refund')" style="background:rgba(244,67,54,0.15); border:1px solid rgba(244,67,54,0.3); color:var(--danger); padding:10px 14px; font-size:13px; cursor:pointer;">Request Refund</button>
+      </div>
+      <div id="resolution-status" style="font-size:12px; color:var(--text-sec); text-align:center; margin-top:10px;"></div>
+    </div>
+  </section>
+
+</div><!-- /#main-content -->
+
+<!-- ===== CHAT WIDGET ===== -->
+<button id="chat-fab" onclick="toggleChat()" title="Sightless Guide">💀</button>
+
+<div id="chat-panel">
+  <div class="chat-header">
+    <div class="chat-header-title">
+      <span>💀</span> Sightless Guide
+    </div>
+    <button class="chat-close-btn" onclick="toggleChat()">×</button>
+  </div>
+  <div id="chat-messages">
+    <div class="chat-bubble bot">
+      Welcome, mourner. I am the Sightless Guide. How may I assist your memorial service today?
+    </div>
+  </div>
+  <div class="chat-input-row">
+    <input
+      type="text"
+      id="chat-input"
+      placeholder="Ask anything…"
+      maxlength="500"
+      onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendChatMessage(); }"
+    />
+    <button id="chat-send" onclick="sendChatMessage()" title="Send">➤</button>
+  </div>
+</div>
+
+<!-- ===== SCRIPTS ===== -->
+<script>
+  // ====================================================
+  // STATE
+  // ====================================================
+  const PROD_BACKEND = 'https://api.graveflow.com';
+  const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+    ? 'http://localhost:8002'
+    : PROD_BACKEND + '/api';
+  const STRIPE_PK = 'pk_test_YOUR_KEY_HERE';
+
+  let selectedGrave = null;    // { cemetery, plot, gps, name }
+  let selectedService = null;  // { name, price }
+  let currentOrderId = null;
+  let paymentProcessing = false;
+  let authToken = localStorage.getItem('gf_rider_token') || null;
+
+  // ====================================================
+  // AUTH HELPERS
+  // ====================================================
+  function switchAuthTab(tab) {
+    document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+    document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+    document.getElementById('form-login').classList.toggle('active', tab === 'login');
+    document.getElementById('form-register').classList.toggle('active', tab === 'register');
+  }
+
+  async function doLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errEl = document.getElementById('login-error');
+    errEl.textContent = '';
+    if (!email || !password) { errEl.textContent = 'Email and password are required.'; return; }
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true; btn.textContent = 'Logging in…';
+    try {
+      const resp = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Login failed');
+      setLoggedIn(data.token, data.user);
+    } catch (err) {
+      errEl.textContent = err.message;
+    } finally {
+      btn.disabled = false; btn.textContent = 'Log In';
+    }
+  }
+
+  async function doRegister() {
+    const name = document.getElementById('reg-name').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const errEl = document.getElementById('register-error');
+    errEl.textContent = '';
+    if (!name || !email || !password) { errEl.textContent = 'All fields are required.'; return; }
+    if (password.length < 8) { errEl.textContent = 'Password must be at least 8 characters.'; return; }
+    const btn = document.getElementById('register-btn');
+    btn.disabled = true; btn.textContent = 'Creating account…';
+    try {
+      const resp = await fetch(`${API_BASE}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, role: 'rider' })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Registration failed');
+      setLoggedIn(data.token, data.user);
+    } catch (err) {
+      errEl.textContent = err.message;
+    } finally {
+      btn.disabled = false; btn.textContent = 'Create Account';
+    }
+  }
+
+  function setLoggedIn(token, user) {
+    authToken = token;
+    localStorage.setItem('gf_rider_token', token);
+    document.getElementById('auth-logged-out').style.display = 'none';
+    document.getElementById('auth-logged-in').style.display = 'block';
+    document.getElementById('auth-username').textContent = user.name || user.email;
+    document.getElementById('main-content').classList.remove('locked');
+  }
+
+  function doLogout() {
+    authToken = null;
+    localStorage.removeItem('gf_rider_token');
+    localStorage.removeItem('gf_token');
+    localStorage.removeItem('gf_user');
+    window.location.reload();
+  }
+
+  window.addEventListener('auth-ready', (e) => {
+    const user = e.detail;
+    authToken = localStorage.getItem('gf_token');
+    setLoggedIn(authToken, user);
+  });
+
+  async function checkAuthOnLoad() {
+    if (window.currentUser) {
+      authToken = localStorage.getItem('gf_token');
+      setLoggedIn(authToken, window.currentUser);
+    }
+  }
+
+  // ====================================================
+  // STRIPE SETUP
+  // ====================================================
+  let stripe = null;
+  let cardElement = null;
+
+  function initStripe() {
+    try {
+      stripe = Stripe(STRIPE_PK);
+      const elements = stripe.elements({
+        appearance: {
+          theme: 'night',
+          variables: {
+            colorPrimary: '#c9a84c',
+            colorBackground: '#1a1a1a',
+            colorText: '#e8e8e8',
+            colorDanger: '#f44336',
+            borderRadius: '8px',
+            fontFamily: 'Inter, system-ui, sans-serif',
+          }
+        }
+      });
+      cardElement = elements.create('card', {
+        style: {
+          base: {
+            color: '#e8e8e8',
+            fontFamily: 'Inter, system-ui, sans-serif',
+            fontSize: '15px',
+            '::placeholder': { color: '#888888' }
+          },
+          invalid: { color: '#f44336' }
+        }
+      });
+      cardElement.mount('#card-element');
+      cardElement.on('change', (e) => {
+        document.getElementById('card-errors').textContent = e.error ? e.error.message : '';
+      });
+    } catch (err) {
+      console.error('Stripe init failed:', err);
+    }
+  }
+
+  // ====================================================
+  // SOCKET.IO SETUP
+  // ====================================================
+  let socket = null;
+
+  function initSocket() {
+    try {
+      const PROD_BACKEND_SOCKET = 'https://api.graveflow.com';
+      const socketHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+        ? 'http://localhost:8002'
+        : PROD_BACKEND_SOCKET;
+      socket = io(socketHost, { transports: ['websocket', 'polling'] });
+
+      socket.on('connect', () => {
+        setConnectionStatus(true);
+      });
+
+      socket.on('disconnect', () => {
+        setConnectionStatus(false);
+      });
+
+      socket.on('connect_error', () => {
+        setConnectionStatus(false);
+      });
+
+      socket.on('proof_verified', (data) => {
+        if (data?.jobId && data.jobId !== currentOrderId) return;
+        document.getElementById('anomaly-banner').classList.remove('show');
+        document.getElementById('dispute-resolution-panel').style.display = 'none';
+        
+        const banner = document.getElementById('proof-banner');
+        const detail = document.getElementById('proof-details');
+        
+        let msg = data?.message || `Payout released to driver ${data?.driverId || ''}.`;
+        if (data?.loveScore) {
+          msg += `<br><span style="color:var(--accent); font-weight:700;">❤️ The Love Effect OS:</span> ${data.loveLabel} Act of Love (Score: ${data.loveScore})`;
+          
+          const loveRow = document.getElementById('love-score-row');
+          if (loveRow) {
+            loveRow.style.display = 'flex';
+            document.getElementById('status-love-score').innerHTML = `<span style="color:var(--accent); font-weight:700;">❤️ ${data.loveLabel}</span> (${data.loveScore})`;
+          }
+        }
+        detail.innerHTML = msg;
+        banner.classList.add('show');
+
+        // Draw driver on map
+        if (data?.gps && window.statusMapInstance) {
+          const [drvLat, drvLon] = data.gps.split(',').map(Number);
+          if (!isNaN(drvLat) && !isNaN(drvLon)) {
+            L.marker([drvLat, drvLon]).addTo(window.statusMapInstance)
+              .bindPopup(`<b>Driver Location (${data.driverId})</b>`);
+            const targetGps = document.getElementById('status-gps').textContent;
+            if (targetGps) {
+              const [targetLat, targetLon] = targetGps.split(',').map(Number);
+              if (!isNaN(targetLat) && !isNaN(targetLon)) {
+                L.polyline([[drvLat, drvLon], [targetLat, targetLon]], { color: '#4caf50', weight: 4 }).addTo(window.statusMapInstance);
+                const bounds = L.latLngBounds([[drvLat, drvLon], [targetLat, targetLon]]);
+                window.statusMapInstance.fitBounds(bounds, { padding: [40, 40] });
+              }
+            }
+          }
+        }
+
+        showOrderStatusPanel();
+        document.getElementById('order-status-panel').scrollIntoView({ behavior: 'smooth' });
+      });
+
+      socket.on('anomaly_detected', (data) => {
+        if (data?.jobId && data.jobId !== currentOrderId) return;
+        document.getElementById('proof-banner').classList.remove('show');
+        
+        const banner = document.getElementById('anomaly-banner');
+        const reason = document.getElementById('anomaly-reason');
+        reason.textContent = data?.reason || 'AI geofencing or vision quarantine check triggered.';
+        banner.classList.add('show');
+
+        // Draw driver on map
+        if (data?.gps && window.statusMapInstance) {
+          const [drvLat, drvLon] = data.gps.split(',').map(Number);
+          if (!isNaN(drvLat) && !isNaN(drvLon)) {
+            L.marker([drvLat, drvLon]).addTo(window.statusMapInstance)
+              .bindPopup(`<b>Driver Location (${data.driverId})</b>`);
+            const targetGps = document.getElementById('status-gps').textContent;
+            if (targetGps) {
+              const [targetLat, targetLon] = targetGps.split(',').map(Number);
+              if (!isNaN(targetLat) && !isNaN(targetLon)) {
+                L.polyline([[drvLat, drvLon], [targetLat, targetLon]], { color: '#f44336', weight: 4 }).addTo(window.statusMapInstance);
+                const bounds = L.latLngBounds([[drvLat, drvLon], [targetLat, targetLon]]);
+                window.statusMapInstance.fitBounds(bounds, { padding: [40, 40] });
+              }
+            }
+          }
+        }
+        
+        // Show the manual review panel
+        const disputePanel = document.getElementById('dispute-resolution-panel');
+        disputePanel.style.display = 'block';
+        
+        const proofImg = document.getElementById('dispute-proof-img');
+        const placeholder = document.getElementById('dispute-proof-placeholder');
+        
+        if (data.imageUrl) {
+          proofImg.src = data.imageUrl.startsWith('/') ? `${API_BASE}${data.imageUrl}` : data.imageUrl;
+          proofImg.onload = () => {
+            placeholder.style.display = 'none';
+            proofImg.style.display = 'block';
+          };
+          proofImg.onerror = () => {
+            placeholder.textContent = 'Failed to load proof image.';
+          };
+        } else {
+          placeholder.textContent = 'No photo proof provided in payload.';
+        }
+        
+        showOrderStatusPanel();
+        document.getElementById('order-status-panel').scrollIntoView({ behavior: 'smooth' });
+      });
+
+      socket.on('gig_refunded', (data) => {
+        if (data?.jobId && data.jobId !== currentOrderId) return;
+        document.getElementById('proof-banner').classList.remove('show');
+        document.getElementById('anomaly-banner').classList.remove('show');
+        document.getElementById('dispute-resolution-panel').style.display = 'none';
+        
+        showBanner('error', `Your order ${data.jobId} has been manually cancelled and refunded.`, 'Escrow Refunded');
+      });
+
+    } catch (err) {
+      console.error('Socket.io init failed:', err);
+      setConnectionStatus(false);
+    }
+  }
+
+  // ====================================================
+  // HYBRID ESCROW DISPUTE RESOLUTION
+  // ====================================================
+  async function resolveDispute(action) {
+    if (!currentOrderId) return;
+    const statusEl = document.getElementById('resolution-status');
+    statusEl.textContent = 'Submitting resolution to The Love Effect OS...';
+    try {
+      const resp = await fetch(`${API_BASE}/resolve-gig`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': authToken ? `Bearer ${authToken}` : ''
+        },
+        body: JSON.stringify({ jobId: currentOrderId, action })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Resolution failed');
+      
+      statusEl.textContent = action === 'approve' 
+        ? '✅ Payout approved! Releasing funds...' 
+        : '❌ Dispute approved! Refunding rider...';
+        
+      showBanner(
+        action === 'approve' ? 'success' : 'error',
+        action === 'approve' ? 'Manual override successful. Funds released to driver.' : 'Manual dispute successful. Escrow funds refunded.',
+        action === 'approve' ? 'Escrow Released' : 'Refund Completed'
+      );
+      
+      setTimeout(() => {
+        document.getElementById('dispute-resolution-panel').style.display = 'none';
+        if (action === 'approve') {
+          document.getElementById('proof-banner').classList.add('show');
+          document.getElementById('anomaly-banner').classList.remove('show');
+          document.getElementById('proof-details').textContent = 'Payout manually released to driver.';
+        } else {
+          document.getElementById('anomaly-banner').classList.remove('show');
+        }
+        statusEl.textContent = '';
+      }, 2000);
+      
+    } catch (err) {
+      statusEl.textContent = `⚠️ Error: ${err.message}`;
+    }
+  }
+
+  function setConnectionStatus(connected) {
+    const dot = document.getElementById('connection-dot');
+    const label = document.getElementById('connection-label');
+    if (connected) {
+      dot.classList.add('connected');
+      label.textContent = 'Live';
+    } else {
+      dot.classList.remove('connected');
+      label.textContent = 'Offline';
+    }
+  }
+
+  // ====================================================
+  // UUID HELPER
+  // ====================================================
+  function generateId() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    // Fallback
+    return 'gf-' + Math.random().toString(36).slice(2, 11) + '-' + Date.now().toString(36);
+  }
+
+  // ====================================================
+  // GRAVE SEARCH
+  // ====================================================
+  async function searchGraves() {
+    const input = document.getElementById('grave-search-input');
+    const searchTerm = input.value.trim();
+    if (!searchTerm) {
+      showSearchStatus('Please enter a name to search.', true);
+      return;
+    }
+
+    const btn = document.getElementById('search-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>';
+    showSearchStatus('Searching…');
+    clearGraveResults();
+
+    try {
+      const resp = await fetch(`${API_BASE}/search-graves?name=${encodeURIComponent(searchTerm)}`);
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        throw new Error(errData.error || errData.message || `Server error: ${resp.status}`);
+      }
+      const data = await resp.json();
+
+      // Accept array or object with results key
+      const results = Array.isArray(data) ? data : (data.results || data.graves || []);
+
+      if (!results.length) {
+        showSearchStatus('No graves found matching that name.');
+      } else {
+        showSearchStatus(`Found ${results.length} result${results.length > 1 ? 's' : ''}.`);
+        renderGraveResults(results);
+      }
+    } catch (err) {
+      showSearchStatus('Search failed: ' + (err.message || 'Network error'), true);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = 'Search';
+    }
+  }
+
+  function showSearchStatus(msg, isError = false) {
+    const el = document.getElementById('search-status');
+    el.textContent = msg;
+    el.style.color = isError ? 'var(--danger)' : 'var(--text-sec)';
+  }
+
+  function clearGraveResults() {
+    document.getElementById('grave-results').innerHTML = '';
+    selectedGrave = null;
+    hideSection('service-section');
+    hideSection('payment-section');
+  }
+
+  function renderGraveResults(results) {
+    const container = document.getElementById('grave-results');
+    container.innerHTML = '';
+
+    results.forEach((grave, idx) => {
+      const card = document.createElement('div');
+      card.className = 'grave-card';
+      card.dataset.idx = idx;
+
+      const name = grave.name || grave.deceased_name || grave.fullName || 'Unknown';
+      const cemetery = grave.cemetery || grave.cemetery_name || '—';
+      const plot = grave.plot || grave.plot_number || '—';
+      const gps = grave.gps || grave.coordinates || (grave.lat && grave.lng ? `${grave.lat}, ${grave.lng}` : '—');
+
+      card.innerHTML = `
+        <h3>${escHtml(name)}</h3>
+        <div class="meta">
+          <span>🏛️ ${escHtml(cemetery)}</span>
+          <span>📍 Plot ${escHtml(String(plot))}</span>
+          <span>🗺️ ${escHtml(String(gps))}</span>
+        </div>
+      `;
+
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.grave-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedGrave = { name, cemetery, plot, gps };
+        showSection('service-section');
+        updatePaymentSummary();
+        document.getElementById('service-section').scrollIntoView({ behavior: 'smooth' });
+      });
+
+      container.appendChild(card);
+    });
+  }
+
+  // ====================================================
+  // SERVICE SELECTION
+  // ====================================================
+  function selectService(card) {
+    document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    const radio = card.querySelector('input[type="radio"]');
+    if (radio) radio.checked = true;
+
+    selectedService = {
+      name: card.dataset.service,
+      price: parseInt(card.dataset.price, 10)
+    };
+
+    // Update summary bar
+    const summary = document.getElementById('service-summary');
+    document.getElementById('summary-service-name').textContent = selectedService.name;
+    document.getElementById('summary-service-price').textContent = `$${selectedService.price}`;
+    summary.style.display = 'flex';
+
+    updatePaymentSummary();
+    showSection('payment-section');
+    document.getElementById('payment-section').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function updatePaymentSummary() {
+    document.getElementById('pay-svc-name').textContent  = selectedService ? selectedService.name : '—';
+    document.getElementById('pay-svc-price').textContent = selectedService ? `$${selectedService.price}` : '—';
+    document.getElementById('pay-grave-name').textContent = selectedGrave ? selectedGrave.name : '—';
+    document.getElementById('pay-cemetery').textContent   = selectedGrave ? selectedGrave.cemetery : '—';
+  }
+
+  // ====================================================
+  // PAYMENT FLOW & WEB3 INTEGRATION
+  // ====================================================
+  let selectedPayMethod = 'stripe';
+  let userWalletAddress = null;
+  let provider = null;
+  let signer = null;
+  let escrowContractInstance = null;
+
+  function selectPayMethod(method) {
+    selectedPayMethod = method;
+    const stripeBtn = document.getElementById('pay-method-stripe');
+    const cryptoBtn = document.getElementById('pay-method-crypto');
+    const stripeFields = document.getElementById('stripe-payment-fields');
+    const cryptoFields = document.getElementById('crypto-payment-fields');
+    const payBtn = document.getElementById('pay-btn');
+
+    if (method === 'stripe') {
+      stripeBtn.style.background = 'var(--accent)';
+      stripeBtn.style.color = '#000';
+      cryptoBtn.style.background = 'var(--card2)';
+      cryptoBtn.style.color = 'var(--text)';
+      stripeFields.style.display = 'block';
+      cryptoFields.style.display = 'none';
+      payBtn.textContent = 'Pay & Dispatch Rider';
+    } else {
+      cryptoBtn.style.background = 'var(--accent)';
+      cryptoBtn.style.color = '#000';
+      stripeBtn.style.background = 'var(--card2)';
+      stripeBtn.style.color = 'var(--text)';
+      stripeFields.style.display = 'none';
+      cryptoFields.style.display = 'block';
+      payBtn.textContent = 'Deposit Escrow & Dispatch';
+    }
+  }
+
+  async function connectWallet() {
+    if (typeof window.ethereum === 'undefined') {
+      showBanner('error', 'MetaMask is not installed. Please install it to use Crypto Escrow.');
+      return;
+    }
+    try {
+      provider = new ethers.BrowserProvider(window.ethereum);
+      const accounts = await provider.send('eth_requestAccounts', []);
+      signer = await provider.getSigner();
+      userWalletAddress = accounts[0];
+      
+      const infoEl = document.getElementById('wallet-info');
+      infoEl.textContent = `Wallet: ${userWalletAddress.substring(0, 6)}...${userWalletAddress.substring(38)}`;
+      infoEl.style.display = 'block';
+      
+      const connectBtn = document.getElementById('connect-wallet-btn');
+      connectBtn.textContent = 'Connected ✅';
+      connectBtn.disabled = true;
+
+      // Load contract address from central configuration
+      let contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+      try {
+        const configRes = await fetch('/escrow_config.json');
+        if (configRes.ok) {
+          const configData = await configRes.json();
+          if (configData.address) contractAddress = configData.address;
+        }
+      } catch (configErr) {
+        console.warn('Could not load escrow_config.json, using local deploy default:', configErr.message);
+      }
+      
+      const abi = [
+        "function lockFunds(bytes32 jobId) external payable",
+        "event FundsLocked(bytes32 indexed jobId, address indexed rider, uint256 amount)"
+      ];
+      escrowContractInstance = new ethers.Contract(contractAddress, abi, signer);
+      showBanner('success', 'MetaMask connected successfully!', 'Wallet Connected');
+    } catch (err) {
+      console.error(err);
+      showBanner('error', 'Failed to connect wallet: ' + err.message);
+    }
+  }
+
+  async function handlePayment() {
+    if (paymentProcessing) return;
+    if (!selectedGrave) { showBanner('error', 'Please select a grave first.'); return; }
+    if (!selectedService) { showBanner('error', 'Please select a service.'); return; }
+
+    paymentProcessing = true;
+    const btn = document.getElementById('pay-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Processing…';
+    clearErrors();
+
+    if (selectedPayMethod === 'crypto') {
+      if (!escrowContractInstance || !userWalletAddress) {
+        showBanner('error', 'Please connect MetaMask first before depositing escrow.');
+        paymentProcessing = false;
+        btn.disabled = false;
+        btn.innerHTML = 'Deposit Escrow & Dispatch';
+        return;
+      }
+
+      setPaymentStatus('Initiating blockchain escrow transaction...');
+      try {
+        const orderId = generateId();
+        currentOrderId = orderId;
+
+        // Hash jobId for bytes32 input
+        const jobIdBytes32 = ethers.keccak256(ethers.toUtf8Bytes(orderId));
+        // Equivalent ETH amount: $18.00 = 0.005 ETH for Hardhat testing
+        const ethValue = ethers.parseEther("0.005");
+
+        console.log(`🔗 [Web3 Escrow] locking funds for job: ${orderId} (hash: ${jobIdBytes32})`);
+        const tx = await escrowContractInstance.lockFunds(jobIdBytes32, { value: ethValue });
+        
+        setPaymentStatus('Waiting for block confirmation...');
+        const receipt = await tx.wait();
+        console.log(`✅ [Web3 Escrow] Confirmed! Tx Hash: ${receipt.hash}`);
+
+        setPaymentStatus('Escrow locked. Dispatching gig...');
+        
+        const gigData = {
+          id: orderId,
+          service: selectedService.name,
+          payout: selectedService.price,
+          gps: selectedGrave.gps,
+          plot: selectedGrave.plot,
+          cemetery: selectedGrave.cemetery,
+          escrowWallet: userWalletAddress,
+          transactionHash: receipt.hash
+        };
+
+        if (socket && socket.connected) {
+          socket.emit('new_order', gigData);
+        }
+
+        populateOrderStatus(gigData);
+        showOrderStatusPanel();
+        showBanner('success', `Escrow locked! Order dispatched to driver network. Tx: ${receipt.hash.substring(0, 10)}...`);
+        setPaymentStatus('');
+        document.getElementById('order-status-panel').scrollIntoView({ behavior: 'smooth' });
+
+      } catch (blockchainErr) {
+        showBanner('error', 'Blockchain escrow failed: ' + (blockchainErr.message || 'Unknown transaction error'));
+        setPaymentStatus('');
+      } finally {
+        paymentProcessing = false;
+        btn.disabled = false;
+        btn.innerHTML = 'Deposit Escrow & Dispatch';
+      }
+
+    } else {
+      // Stripe payment path
+      if (!stripe || !cardElement) {
+        showBanner('error', 'Stripe payment is not available. Please refresh and try again.');
+        paymentProcessing = false;
+        btn.disabled = false;
+        btn.innerHTML = 'Pay & Dispatch Rider';
+        return;
+      }
+
+      setPaymentStatus('Creating payment intent…');
+      try {
+        // Step 1: Create payment intent
+        const intentResp = await fetch(`${API_BASE}/create-payment-intent`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: selectedService.price * 100, // cents
+            currency: 'usd'
+          })
+        });
+
+        if (!intentResp.ok) {
+          const errBody = await intentResp.json().catch(() => ({}));
+          throw new Error(errBody.error || errBody.message || `Payment intent failed (${intentResp.status})`);
+        }
+
+        const { clientSecret } = await intentResp.json();
+        if (!clientSecret) throw new Error('No client secret returned from server.');
+
+        setPaymentStatus('Confirming card payment…');
+
+        // Step 2: Confirm card payment with Stripe
+        const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: { card: cardElement }
+        });
+
+        if (stripeError) {
+          document.getElementById('card-errors').textContent = stripeError.message;
+          throw new Error(stripeError.message);
+        }
+
+        if (paymentIntent.status !== 'succeeded') {
+          throw new Error(`Payment status: ${paymentIntent.status}. Expected succeeded.`);
+        }
+
+        setPaymentStatus('Payment successful! Dispatching rider…');
+
+        const orderId = generateId();
+        currentOrderId = orderId;
+
+        const gigData = {
+          id: orderId,
+          service: selectedService.name,
+          payout: selectedService.price,
+          gps: selectedGrave.gps,
+          plot: selectedGrave.plot,
+          cemetery: selectedGrave.cemetery,
+          escrowWallet: 'FIAT_STRIPE_PROXY'
+        };
+
+        if (socket && socket.connected) {
+          socket.emit('new_order', gigData);
+        }
+
+        populateOrderStatus(gigData);
+        showOrderStatusPanel();
+        showBanner('success', `Order dispatched! Rider is on the way to ${selectedGrave.cemetery}.`);
+        setPaymentStatus('');
+        document.getElementById('order-status-panel').scrollIntoView({ behavior: 'smooth' });
+
+      } catch (err) {
+        showBanner('error', 'Payment failed: ' + (err.message || 'Unknown error'));
+        setPaymentStatus('');
+      } finally {
+        paymentProcessing = false;
+        btn.disabled = false;
+        btn.innerHTML = 'Pay &amp; Dispatch Rider';
+      }
+    }
+  }
+
+  // Initialize payment mode default
+  setTimeout(() => selectPayMethod('stripe'), 200);
+
+  function setPaymentStatus(msg) {
+    document.getElementById('payment-status').textContent = msg;
+  }
+
+  function clearErrors() {
+    document.getElementById('card-errors').textContent = '';
+    hideBanner('success');
+    hideBanner('error');
+  }
+
+  // ====================================================
+  // ORDER STATUS PANEL
+  // ====================================================
+  function populateOrderStatus(gig) {
+    document.getElementById('status-order-id').textContent = gig.id;
+    document.getElementById('status-service').textContent = gig.service;
+    document.getElementById('status-cemetery').textContent = gig.cemetery;
+    document.getElementById('status-plot').textContent = gig.plot;
+    document.getElementById('status-gps').textContent = gig.gps;
+    document.getElementById('status-payout').textContent = `$${gig.payout}`;
+    document.getElementById('status-escrow').textContent = gig.escrowWallet;
+    // Reset event banners
+    document.getElementById('proof-banner').classList.remove('show');
+    document.getElementById('anomaly-banner').classList.remove('show');
+
+    // Map plot
+    const mapDiv = document.getElementById('status-map');
+    mapDiv.style.display = 'block';
+    setTimeout(() => {
+      if (window.statusMapInstance) {
+        window.statusMapInstance.remove();
+        window.statusMapInstance = null;
+      }
+      if (gig.gps) {
+        const [lat, lon] = gig.gps.split(',').map(Number);
+        if (!isNaN(lat) && !isNaN(lon)) {
+          const map = L.map('status-map').setView([lat, lon], 16);
+          window.statusMapInstance = map;
+          
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+          }).addTo(map);
+
+          L.marker([lat, lon]).addTo(map)
+            .bindPopup(`<b>Grave Target</b><br>${gig.cemetery}<br>Plot: ${gig.plot || '—'}`)
+            .openPopup();
+        }
+      }
+    }, 100);
+  }
+
+  function showOrderStatusPanel() {
+    document.getElementById('order-status-panel').style.display = 'block';
+  }
+
+  // ====================================================
+  // BANNER HELPERS
+  // ====================================================
+  function showBanner(type, message, title) {
+    if (type === 'success') {
+      document.getElementById('banner-success-title').textContent = title || 'Success';
+      document.getElementById('banner-success-body').textContent = message;
+      document.getElementById('banner-success').classList.add('show');
+      document.getElementById('banner-error').classList.remove('show');
+    } else {
+      document.getElementById('banner-error-title').textContent = title || 'Error';
+      document.getElementById('banner-error-body').textContent = message;
+      document.getElementById('banner-error').classList.add('show');
+      document.getElementById('banner-success').classList.remove('show');
+    }
+    document.getElementById(type === 'success' ? 'banner-success' : 'banner-error')
+      .scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function hideBanner(type) {
+    const id = type === 'success' ? 'banner-success' : 'banner-error';
+    document.getElementById(id).classList.remove('show');
+  }
+
+  // ====================================================
+  // SECTION VISIBILITY
+  // ====================================================
+  function showSection(id) {
+    document.getElementById(id).classList.remove('section-hidden');
+  }
+
+  function hideSection(id) {
+    document.getElementById(id).classList.add('section-hidden');
+  }
+
+  // ====================================================
+  // AI CHAT WIDGET
+  // ====================================================
+  let chatOpen = false;
+  let chatBusy = false;
+  let typingBubble = null;
+
+  function toggleChat() {
+    chatOpen = !chatOpen;
+    const panel = document.getElementById('chat-panel');
+    if (chatOpen) {
+      panel.classList.add('open');
+      document.getElementById('chat-input').focus();
+    } else {
+      panel.classList.remove('open');
+    }
+  }
+
+  async function sendChatMessage() {
+    if (chatBusy) return;
+    const input = document.getElementById('chat-input');
+    const message = input.value.trim();
+    if (!message) return;
+
+    input.value = '';
+    appendChatBubble(message, 'user');
+
+    chatBusy = true;
+    document.getElementById('chat-send').disabled = true;
+
+    // Show typing indicator
+    typingBubble = appendChatBubble('…', 'bot typing');
+
+    try {
+      const resp = await fetch(`${API_BASE}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+      });
+
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        throw new Error(errData.error || errData.message || `Server error ${resp.status}`);
+      }
+
+      const data = await resp.json();
+      const reply = data.reply || data.response || data.message || data.text || 'The Guide has no words at this time.';
+
+      removeTypingBubble();
+      appendChatBubble(reply, 'bot');
+
+    } catch (err) {
+      removeTypingBubble();
+      appendChatBubble('The Sightless Guide is unreachable at this moment. (' + (err.message || 'Network error') + ')', 'bot');
+    } finally {
+      chatBusy = false;
+      document.getElementById('chat-send').disabled = false;
+      input.focus();
+    }
+  }
+
+  function appendChatBubble(text, type) {
+    const messages = document.getElementById('chat-messages');
+    const bubble = document.createElement('div');
+    const classes = type.split(' ');
+    bubble.classList.add('chat-bubble', ...classes);
+    bubble.textContent = text;
+    messages.appendChild(bubble);
+    messages.scrollTop = messages.scrollHeight;
+    return bubble;
+  }
+
+  function removeTypingBubble() {
+    if (typingBubble && typingBubble.parentNode) {
+      typingBubble.parentNode.removeChild(typingBubble);
+      typingBubble = null;
+    }
+  }
+
+  // ====================================================
+  // UTILITY
+  // ====================================================
+  function escHtml(str) {
+    const el = document.createElement('div');
+    el.appendChild(document.createTextNode(str));
+    return el.innerHTML;
+  }
+
+  // Allow pressing Enter in grave search
+  document.getElementById('grave-search-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') searchGraves();
+  });
+
+  // ====================================================
+  // INIT
+  // ====================================================
+  document.addEventListener('DOMContentLoaded', () => {
+    checkAuthOnLoad();
+    initStripe();
+    initSocket();
+  });
+</script>
+<script type="module" src="twin_assistant.js"></script>
+</body>
+</html>

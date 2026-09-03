@@ -1,0 +1,386 @@
+Created At: 2026-07-14T18:06:42Z
+Completed At: 2026-07-14T18:06:42Z
+{
+  "drivers": {
+    "NODE_492": {
+      "balance": 0,
+      "completed_gigs": []
+    },
+    "AGENT_DRIVER_001": {
+      "balance": 25,
+      "completed_gigs": [
+        {
+          "jobId": "job_test_1783481276077",
+          "gps": "40.7128, -74.0060",
+          "payout": 25,
+          "ipfs_cid": "/assets/quarantine/job_test_1783481276077.jpg",
+          "ai_model": "MANUAL_OVERRIDE_APPROVED",
+          "driver_wallet": null,
+          "resolved_wallet": null,
+          "timestamp": "2026-07-08T03:28:01.028Z"
+        }
+      ]
+    }
+  },
+  "active_gigs": {
+    "GIG_1781398545979": {
+      "id": "GIG_1781398545979",
+      "service": "Memorial Flowers Placement",
+      "cemetery": "Graceland Cemetery",
+      "plot": "Section K, Row U, Lot 195",
+      "gps": "41.947840, -87.653720",
+      "payout": 45,
+      "escrowWallet": "SOVEREIGN_ESCROW_SMART_CONTRACT",
+      "status": "ESCROW_LOCKED",
+      "timestamp": "2026-06-14T00:56:06.212Z"
+    },
+    "GIG_1781398609919": {
+      "id": "GIG_1781398609919",
+      "service": "Memorial Flowers Placement",
+      "cemetery": "Graceland Cemetery",
+      "plot": "Section K, Row U, Lot 195",
+      "gps": "41.947840, -87.653720",
+      "payout": 45,
+      "escrowWallet": "SOVEREIGN_ESCROW_SMART_CONTRACT",
+      "status": "ESCROW_LOCKED",
+      "timestamp": "2026-06-14T00:57:10.161Z"
+    },
+    "GIG_1781398640833": {
+      "id": "GIG_1781398640833",
+      "service": "Memorial Flowers Placement",
+      "cemetery": "Graceland Cemetery",
+      "plot": "Section K, Row U, Lot 195",
+      "gps": "41.947840, -87.653720",
+      "payout": 45,
+      "escrowWallet": "SOVEREIGN_ESCROW_SMART_CONTRACT",
+      "status": "ESCROW_LOCKED",
+      "timestamp": "2026-06-14T00:57:41.069Z"
+    },
+    "GIG_1781398693382": {
+      "id": "GIG_1781398693382",
+      "service": "Memorial Flowers Placement",
+      "cemetery": "Graceland Cemetery",
+      "plot": "Section K, Row U, Lot 195",
+      "gps": "41.947840, -87.653720",
+      "payout": 45,
+      "escrowWallet": "SOVEREIGN_ESCROW_SMART_CONTRACT",
+      "status": "ESCROW_LOCKED",
+      "timestamp": "2026-06-14T00:58:33.617Z"
+    },
+    "GIG_1781399812176": {
+      "id": "GIG_1781399812176",
+      "service": "Memorial Flowers Placement",
+      "cemetery": "Graceland Cemetery",
+      "plot": "Section K, Row U, Lot 195",
+      "gps": "41.947840, -87.653720",
+      "payout": 45,
+      "escrowWallet": "SOVEREIGN_ESCROW_SMART_CONTRACT",
+      "status": "ESCROW_LOCKED",
+      "timestamp": "2026-06-14T01:17:12.392Z"
+    },
+    "GIG_1781400020908": {
+      "id": "GIG_1781400020908",
+      "service": "Memorial Flowers Placement",
+      "cemetery": "Graceland Cemetery",
+      "plot": "Section K, Row U, Lot 195",
+      "gps": "41.947840, -87.653720",
+      "payout": 45,
+      "escrowWallet": "SOVEREIGN_ESCROW_SMART_CONTRACT",
+      "status": "ESCROW_LOCKED",
+      "timestamp": "2026-06-14T01:20:41.152Z"
+    },
+    "GIG_1781400045214": {
+      "id": "GIG_1781400045214",
+      "service": "Memorial Flowers Placement",
+      "cemetery": "Graceland Cemetery",
+      "plot": "Section K, Row U, Lot 195",
+      "gps": "41.947840, -87.653720",
+      "payout": 45,
+      "escrowWallet": "SOVEREIGN_ESCROW_SMART_CONTRACT",
+      "status": "ESCROW_LOCKED",
+      "timestamp": "2026-06-14T01:21:05.470Z"
+    },
+    "GIG_1781400434396": {
+      "id": "GIG_1781400434396",
+      "service": "Memorial Flowers Placement",
+      "cemetery": "Graceland Cemetery",
+      "plot": "Section K, Row U, Lot 195",
+      "gps": "41.947840, -87.653720",
+      "payout": 45,
+      "escrowWallet": "SOVEREIGN_ESCROW_SMART_CONTRACT",
+      "status": "ESCROW_LOCKED",
+      "timestamp": "2026-06-14T01:27:34.629Z"
+    },
+    "GIG_1781400596196": {
+      "id": "GIG_1781400596196",
+      "service": "Memorial Flowers Placement",
+      "cemetery": "Graceland Cemetery",
+      "plot": "Section K, Row U, Lot 195",
+      "gps": "41.947840, -87.653720",
+      "payout": 45,
+      "escrowWallet": "SOVEREIGN_ESCROW_SMART_CONTRACT",
+      "status": "ESCROW_LOCKED",
+      "timestamp": "2026-06-14T01:30:16.436Z"
+    },
+    "GIG_1781401175308": {
+      "id": "GIG_1781401175308",
+      "service": "Memorial Flowers Placement",
+      "cemetery": "Graceland Cemetery",
+      "plot": "Section K, Row U, Lot 195",
+      "gps": "41.947840, -87.653720",
+      "payout": 45,
+      "escrowWallet": "SOVEREIGN_ESCROW_SMART_CONTRACT",
+      "status": "ESCROW_LOCKED",
+      "timestamp": "2026-06-14T01:39:55.541Z"
+    },
+    "GIG_1781401253030": {
+      "id": "GIG_1781401253030",
+      "service": "Memorial Flowers Placement",
+      "cemetery": "Graceland Cemetery",
+      "plot": "Section K, Row U, Lot 195",
+      "gps": "41.947840, -87.653720",
+      "payout": 45,
+      "escrowWallet": "FIAT_STRIPE_PROXY",
+      "status": "ESCROW_LOCKED",
+      "timestamp": "2026-06-14T01:41:13.288Z"
+    },
+    "job_test_1783481267193": {
+      "id": "job_test_1783481267193",
+      "service": "Clean headstone",
+      "payout": 25,
+      "escrowWallet": "FIAT_STRIPE_PROXY",
+      "gps": "40.7128, -74.0060",
+      "cemetery": "Green-Wood Cemetery",
+      "plot": "Section 4, Lot 12",
+      "status": "ESCROW_LOCKED",
+      "timestamp": "2026-07-08T03:27:47.194Z"
+    }
+  },
+  "quarantined_gigs": [
+    {
+      "jobId": "GIG_1781398545979",
+      "driverId": "DRV_AUTO_5979",
+      "gps": "0,0",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T00:56:06.216Z"
+    },
+    {
+      "jobId": "GIG_1781398545979",
+      "driverId": "AGENT_DRIVER_001",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T00:56:09.990Z"
+    },
+    {
+      "jobId": "GIG_1781398609919",
+      "driverId": "DRV_AUTO_9919",
+      "gps": "0,0",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T00:57:10.164Z"
+    },
+    {
+      "jobId": "GIG_1781398609919",
+      "driverId": "AGENT_DRIVER_001",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T00:57:13.680Z"
+    },
+    {
+      "jobId": "GIG_1781398640833",
+      "driverId": "DRV_AUTO_0833",
+      "gps": "0,0",
+      "reason": "GPS out of bounds. Distance: 9813526.45m (max 15m) & Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T00:57:41.073Z"
+    },
+    {
+      "jobId": "GIG_1781398640833",
+      "driverId": "DRV_AUTO_0833",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T00:57:41.075Z"
+    },
+    {
+      "jobId": "GIG_1781398640833",
+      "driverId": "AGENT_DRIVER_001",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T00:57:45.496Z"
+    },
+    {
+      "jobId": "GIG_1781398693382",
+      "driverId": "DRV_AUTO_3382",
+      "gps": "0,0",
+      "reason": "GPS out of bounds. Distance: 9813526.45m (max 15m) & Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T00:58:33.622Z"
+    },
+    {
+      "jobId": "GIG_1781398693382",
+      "driverId": "DRV_AUTO_3382",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T00:58:33.625Z"
+    },
+    {
+      "jobId": "GIG_1781398693382",
+      "driverId": "AGENT_DRIVER_001",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T00:58:37.279Z"
+    },
+    {
+      "jobId": "GIG_1781399812176",
+      "driverId": "DRV_AUTO_2176",
+      "gps": "0,0",
+      "reason": "GPS out of bounds. Distance: 9813526.45m (max 15m) & Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:17:12.393Z"
+    },
+    {
+      "jobId": "GIG_1781399812176",
+      "driverId": "DRV_AUTO_2176",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:17:12.395Z"
+    },
+    {
+      "jobId": "GIG_1781399812176",
+      "driverId": "AGENT_DRIVER_001",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:17:16.939Z"
+    },
+    {
+      "jobId": "GIG_1781400020908",
+      "driverId": "DRV_AUTO_0908",
+      "gps": "0,0",
+      "reason": "GPS out of bounds. Distance: 9813526.45m (max 15m) & Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:20:41.155Z"
+    },
+    {
+      "jobId": "GIG_1781400020908",
+      "driverId": "DRV_AUTO_0908",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:20:41.157Z"
+    },
+    {
+      "jobId": "GIG_1781400020908",
+      "driverId": "AGENT_DRIVER_001",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:20:45.414Z"
+    },
+    {
+      "jobId": "GIG_1781400045214",
+      "driverId": "DRV_AUTO_5214",
+      "gps": "0,0",
+      "reason": "GPS out of bounds. Distance: 9813526.45m (max 15m) & Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:21:05.474Z"
+    },
+    {
+      "jobId": "GIG_1781400045214",
+      "driverId": "DRV_AUTO_5214",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:21:05.477Z"
+    },
+    {
+      "jobId": "GIG_1781400045214",
+      "driverId": "AGENT_DRIVER_001",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:21:09.933Z"
+    },
+    {
+      "jobId": "GIG_1781400434396",
+      "driverId": "DRV_AUTO_4396",
+      "gps": "0,0",
+      "reason": "GPS out of bounds. Distance: 9813526.45m (max 15m) & Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:27:34.631Z"
+    },
+    {
+      "jobId": "GIG_1781400434396",
+      "driverId": "DRV_AUTO_4396",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:27:34.633Z"
+    },
+    {
+      "jobId": "GIG_1781400434396",
+      "driverId": "AGENT_DRIVER_001",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:27:39.448Z"
+    },
+    {
+      "jobId": "GIG_1781400596196",
+      "driverId": "DRV_AUTO_6196",
+      "gps": "0,0",
+      "reason": "GPS out of bounds. Distance: 9813526.45m (max 15m) & Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:30:16.440Z"
+    },
+    {
+      "jobId": "GIG_1781400596196",
+      "driverId": "DRV_AUTO_6196",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:30:16.442Z"
+    },
+    {
+      "jobId": "GIG_1781400596196",
+      "driverId": "AGENT_DRIVER_001",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:30:19.697Z"
+    },
+    {
+      "jobId": "GIG_1781401175308",
+      "driverId": "DRV_AUTO_5308",
+      "gps": "0,0",
+      "reason": "GPS out of bounds. Distance: 9813526.45m (max 15m) & Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:39:55.543Z"
+    },
+    {
+      "jobId": "GIG_1781401175308",
+      "driverId": "DRV_AUTO_5308",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:39:55.544Z"
+    },
+    {
+      "jobId": "GIG_1781401175308",
+      "driverId": "AGENT_DRIVER_001",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:39:59.962Z"
+    },
+    {
+      "jobId": "GIG_1781401253030",
+      "driverId": "DRV_AUTO_3030",
+      "gps": "0,0",
+      "reason": "GPS out of bounds. Distance: 9813526.45m (max 15m) & Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:41:13.290Z"
+    },
+    {
+      "jobId": "GIG_1781401253030",
+      "driverId": "DRV_AUTO_3030",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:41:13.292Z"
+    },
+    {
+      "jobId": "GIG_1781401253030",
+      "driverId": "AGENT_DRIVER_001",
+      "gps": "41.947840, -87.653720",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "timestamp": "2026-06-14T01:41:16.458Z"
+    },
+    {
+      "jobId": "job_test_1783481267193",
+      "driverId": "AGENT_DRIVER_001",
+      "gps": "40.7128, -74.0060",
+      "reason": "Trespassing Violation: outside permitted hours (6AM–8PM)",
+      "image_url": "/assets/quarantine/job_test_1783481267193.jpg",
+      "timestamp": "2026-07-08T03:27:51.491Z"
+    }
+  ]
+}

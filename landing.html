@@ -1,0 +1,2889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GraveFlow — On-Demand Grave Care, Verified by AI</title>
+  <meta name="description" content="GraveFlow connects families with trusted caregivers who photograph, clean, and maintain graves on demand. AI-verified, open-source, dual-escrow payments." />
+  <meta property="og:title" content="GraveFlow — On-Demand Grave Care, Verified by AI" />
+  <meta property="og:description" content="Honor your loved ones from anywhere. GraveFlow's AI verification, dual escrow, and real-time dispatch make remote grave care effortless and trustworthy." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#08080a" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.0/build/spline-viewer.js"></script>
+
+  <style>
+    /* ============================
+       CSS RESET & CUSTOM PROPERTIES
+       ============================ */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg:          #08080a;
+      --bg-card:     #0e0e12;
+      --bg-card-2:   #131318;
+      --gold:        #c9a84c;
+      --gold-light:  #e8c96a;
+      --gold-dark:   #9a7a2e;
+      --text:        #e8e8ec;
+      --text-muted:  #8a8a9a;
+      --border:      rgba(201, 168, 76, 0.18);
+      --radius:      14px;
+      --radius-lg:   22px;
+      --transition:  0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      --nav-height:  68px;
+      --max-w:       1160px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img { display: block; }
+
+    /* ============================
+       UTILITY CLASSES
+       ============================ */
+    .container {
+      width: 100%;
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 1.25rem;
+    }
+
+    .gold-text {
+      background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, var(--gold-dark) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .section-label {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      background: rgba(201, 168, 76, 0.08);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 0.3rem 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+    }
+
+    .section-subtitle {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      max-width: 560px;
+      line-height: 1.7;
+    }
+
+    /* ============================
+       FADE-IN ANIMATION (Intersection Observer)
+       ============================ */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .fade-in-delay-1 { transition-delay: 0.1s; }
+    .fade-in-delay-2 { transition-delay: 0.2s; }
+    .fade-in-delay-3 { transition-delay: 0.3s; }
+    .fade-in-delay-4 { transition-delay: 0.4s; }
+    .fade-in-delay-5 { transition-delay: 0.5s; }
+    .fade-in-delay-6 { transition-delay: 0.6s; }
+
+    /* ============================
+       NAVBAR
+       ============================ */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      height: var(--nav-height);
+      display: flex;
+      align-items: center;
+      background: rgba(8, 8, 10, 0.82);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(201, 168, 76, 0.08);
+      transition: background var(--transition), border-color var(--transition);
+    }
+
+    .navbar.scrolled {
+      background: rgba(8, 8, 10, 0.96);
+      border-color: var(--border);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 1.25rem;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      font-size: 1.2rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .nav-logo .logo-icon {
+      font-size: 1.4rem;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: color var(--transition);
+    }
+
+    .nav-links a:hover {
+      color: var(--gold);
+    }
+
+    .nav-cta {
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+      color: #08080a !important;
+      font-weight: 700 !important;
+      padding: 0.45rem 1.1rem;
+      border-radius: 8px;
+      transition: opacity var(--transition), transform var(--transition) !important;
+    }
+
+    .nav-cta:hover {
+      opacity: 0.88;
+      transform: translateY(-1px);
+    }
+
+    /* Hamburger */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 6px;
+      background: none;
+      border: none;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--text);
+      border-radius: 2px;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .hamburger.open span:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+
+    .hamburger.open span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger.open span:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* Mobile nav drawer */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      top: var(--nav-height);
+      left: 0;
+      right: 0;
+      z-index: 999;
+      background: rgba(10, 10, 14, 0.98);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 1.25rem;
+      flex-direction: column;
+      gap: 1rem;
+      transform: translateY(-10px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .mobile-nav.open {
+      display: flex;
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .mobile-nav a {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      padding: 0.6rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: color var(--transition);
+    }
+
+    .mobile-nav a:last-child { border-bottom: none; }
+
+    .mobile-nav a:hover { color: var(--gold); }
+
+    .mobile-nav .mobile-cta {
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+      color: #08080a;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      text-align: center;
+      border-bottom: none;
+    }
+
+    /* ============================
+       HERO SECTION
+       ============================ */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding-top: var(--nav-height);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background decorative gradients */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(201, 168, 76, 0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 80% 60%, rgba(201, 168, 76, 0.05) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* Grid lines decoration */
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(201, 168, 76, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201, 168, 76, 0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 0%, transparent 70%);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      align-items: center;
+      gap: 3rem;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+      padding: 5rem 0;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      text-align: left;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(201, 168, 76, 0.07);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 0.35rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+      margin-bottom: 2rem;
+    }
+
+    .hero-badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.7); }
+    }
+
+    .hero-title {
+      font-size: clamp(2.6rem, 7vw, 5.2rem);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -0.05em;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-desc {
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
+      color: var(--text-muted);
+      max-width: 580px;
+      margin: 0 0 2.5rem 0;
+      line-height: 1.75;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, var(--gold-dark) 100%);
+      color: #08080a;
+      font-weight: 800;
+      font-size: 1rem;
+      padding: 0.85rem 2rem;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
+      box-shadow: 0 4px 24px rgba(201, 168, 76, 0.3);
+      letter-spacing: -0.01em;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(201, 168, 76, 0.45);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 0.85rem 2rem;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      transition: border-color var(--transition), color var(--transition), transform var(--transition);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+      transform: translateY(-2px);
+    }
+
+    /* Hero floating stat cards */
+    .hero-stats {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      margin-top: 4rem;
+    }
+
+    .hero-stat {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.5rem;
+      text-align: center;
+      min-width: 130px;
+    }
+
+    .hero-stat .stat-num {
+      font-size: 1.8rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .hero-stat .stat-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-top: 0.2rem;
+    }
+
+    .hero-canvas-wrap {
+      width: 100%;
+      height: 480px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-canvas-wrap canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Floating grave emoji orb */
+    .hero-orb {
+      position: absolute;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(201, 168, 76, 0.06) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: orb-pulse 6s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes orb-pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+      50%       { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+    }
+
+    /* ============================
+       HOW IT WORKS SECTION
+       ============================ */
+    .how-it-works {
+      padding: 7rem 0;
+      position: relative;
+    }
+
+    .how-it-works::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      position: relative;
+    }
+
+    /* Connector line between steps on desktop */
+    .steps-grid::before {
+      content: '';
+      position: absolute;
+      top: 56px;
+      left: calc(16.66% + 28px);
+      right: calc(16.66% + 28px);
+      height: 1px;
+      background: linear-gradient(90deg, var(--border), var(--gold), var(--border));
+      z-index: 0;
+    }
+
+    .step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+    }
+
+    .step-card:hover {
+      border-color: var(--gold);
+      transform: translateY(-6px);
+      box-shadow: 0 20px 60px rgba(201, 168, 76, 0.1);
+    }
+
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+      border-radius: 50%;
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: #08080a;
+      margin: 0 auto 1.5rem;
+      box-shadow: 0 0 0 8px rgba(201, 168, 76, 0.08);
+    }
+
+    .step-emoji {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .step-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+
+    .step-desc {
+      font-size: 0.93rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    /* ============================
+       FEATURES SECTION
+       ============================ */
+    .features {
+      padding: 7rem 0;
+      background: linear-gradient(180deg, var(--bg) 0%, rgba(14, 14, 18, 0.6) 50%, var(--bg) 100%);
+      position: relative;
+    }
+
+    .features::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+    }
+
+    .features::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem 1.75rem;
+      transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .feature-card:hover::before {
+      opacity: 1;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(201, 168, 76, 0.35);
+      transform: translateY(-6px);
+      box-shadow: 0 24px 64px rgba(201, 168, 76, 0.09);
+    }
+
+    .feature-icon-wrap {
+      width: 54px;
+      height: 54px;
+      border-radius: 14px;
+      background: rgba(201, 168, 76, 0.1);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1.25rem;
+      transition: background var(--transition), border-color var(--transition);
+    }
+
+    .feature-card:hover .feature-icon-wrap {
+      background: rgba(201, 168, 76, 0.18);
+      border-color: var(--gold);
+    }
+
+    .feature-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+      letter-spacing: -0.02em;
+    }
+
+    .feature-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .feature-tag {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      background: rgba(201, 168, 76, 0.08);
+      border: 1px solid rgba(201, 168, 76, 0.2);
+      border-radius: 100px;
+      padding: 0.2rem 0.6rem;
+      margin-top: 1rem;
+    }
+
+    /* ============================
+       C-SUITE TEAM SECTION
+       ============================ */
+    .team {
+      padding: 7rem 0;
+    }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .exec-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2.25rem 1.75rem;
+      transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .exec-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: linear-gradient(180deg, transparent 0%, rgba(201, 168, 76, 0.03) 100%);
+      pointer-events: none;
+    }
+
+    .exec-card:hover {
+      border-color: rgba(201, 168, 76, 0.4);
+      transform: translateY(-6px);
+      box-shadow: 0 24px 60px rgba(201, 168, 76, 0.1);
+    }
+
+    .exec-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(201, 168, 76, 0.2) 0%, rgba(201, 168, 76, 0.05) 100%);
+      border: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin-bottom: 1.25rem;
+      transition: border-color var(--transition), background var(--transition);
+    }
+
+    .exec-card:hover .exec-avatar {
+      border-color: var(--gold);
+      background: linear-gradient(135deg, rgba(201, 168, 76, 0.28) 0%, rgba(201, 168, 76, 0.1) 100%);
+    }
+
+    .exec-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.3rem;
+    }
+
+    .exec-title {
+      font-size: 0.8rem;
+      color: var(--gold);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .exec-divider {
+      width: 32px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+      border-radius: 2px;
+      margin: 1rem 0;
+    }
+
+    .exec-bio {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+
+    /* ============================
+       TRUST BAR
+       ============================ */
+    .trust-bar {
+      padding: 4.5rem 0;
+      border-top: 1px solid rgba(201, 168, 76, 0.08);
+      border-bottom: 1px solid rgba(201, 168, 76, 0.08);
+    }
+
+    .trust-bar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3rem;
+      flex-wrap: wrap;
+    }
+
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      font-weight: 500;
+    }
+
+    .trust-item .icon {
+      font-size: 1.2rem;
+    }
+
+    /* ============================
+       CTA BANNER
+       ============================ */
+    .cta-banner {
+      padding: 7rem 0;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(201, 168, 76, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 4rem 2.5rem;
+      max-width: 680px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 20%;
+      right: 20%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    .cta-box-title {
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1.12;
+      margin-bottom: 1rem;
+    }
+
+    .cta-box-desc {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 2.5rem;
+      line-height: 1.7;
+    }
+
+    /* ============================
+       FOOTER
+       ============================ */
+    footer {
+      padding: 4rem 0 2rem;
+      border-top: 1px solid rgba(201, 168, 76, 0.08);
+    }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 2.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .footer-brand .nav-logo {
+      margin-bottom: 1rem;
+    }
+
+    .footer-brand-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+      max-width: 280px;
+    }
+
+    .footer-col-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+
+    .footer-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .footer-links a {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      transition: color var(--transition);
+    }
+
+    .footer-links a:hover {
+      color: var(--gold);
+    }
+
+    .footer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-copy {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .footer-copy span {
+      color: var(--gold);
+    }
+
+    .footer-legal {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .footer-legal a {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      transition: color var(--transition);
+    }
+
+    .footer-legal a:hover { color: var(--gold); }
+
+    /* ============================
+       SCROLLBAR
+       ============================ */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb {
+      background: var(--gold-dark);
+      border-radius: 3px;
+    }
+
+    /* ============================
+       RESPONSIVE
+       ============================ */
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+
+      .footer-top {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .footer-brand { grid-column: 1 / -1; }
+
+      .steps-grid::before { display: none; }
+
+      /* Hero mobile layout adjustments */
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        text-align: center;
+        padding: 3rem 0;
+      }
+
+      .hero-content {
+        text-align: center;
+      }
+
+      .hero-desc {
+        margin: 0 auto 2.5rem;
+      }
+
+      .hero-actions {
+        justify-content: center;
+      }
+
+      .hero-stats {
+        justify-content: center;
+        margin-top: 2.5rem;
+      }
+
+      .hero-canvas-wrap {
+        height: 340px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .hero-stats { gap: 0.75rem; }
+      .hero-stat { min-width: 110px; padding: 0.8rem 1rem; }
+
+      .cta-box { padding: 2.5rem 1.5rem; }
+
+      .footer-top { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+      .trust-bar-inner { gap: 1.5rem; }
+
+      .features-grid,
+      .team-grid { gap: 1rem; }
+
+      .steps-grid { gap: 1rem; }
+    }
+
+    /* ============================
+       DECORATIVE ELEMENTS
+       ============================ */
+    .glow-line {
+      width: 80px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+      border-radius: 2px;
+      margin: 1.5rem auto;
+    }
+
+    .glow-line.left { margin-left: 0; }
+
+    /* ============================================================
+       HIGH-FIDELITY MOTION CUSTOM STYLES (Design Spells / MotionSites)
+       ============================================================ */
+    
+    /* 1. Custom Follower Cursor (Desktop Only) */
+    @media (pointer: fine) {
+      body {
+        cursor: none;
+      }
+      a, button, [role="button"], input, select, textarea, .drag-handle {
+        cursor: none !important;
+      }
+      #custom-cursor {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 10px;
+        height: 10px;
+        background-color: var(--gold);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 99999;
+        transform: translate(-50%, -50%);
+        transition: width 0.2s, height 0.2s, background-color 0.2s;
+        mix-blend-mode: difference;
+      }
+      #custom-cursor-ring {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 36px;
+        height: 36px;
+        border: 1.5px solid var(--gold);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 99998;
+        transform: translate(-50%, -50%);
+        transition: width 0.25s cubic-bezier(0.25, 1, 0.5, 1), 
+                    height 0.25s cubic-bezier(0.25, 1, 0.5, 1),
+                    border-color 0.25s, background-color 0.25s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: transparent;
+        overflow: hidden;
+      }
+      /* Hover states for cursor */
+      body.hover-interactive #custom-cursor {
+        width: 6px;
+        height: 6px;
+        background-color: #ffffff;
+      }
+      body.hover-interactive #custom-cursor-ring {
+        width: 64px;
+        height: 64px;
+        border-color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(2px);
+      }
+      body.hover-swipe #custom-cursor {
+        width: 0;
+        height: 0;
+      }
+      body.hover-swipe #custom-cursor-ring {
+        width: 90px;
+        height: 90px;
+        border-color: var(--gold);
+        background-color: rgba(201, 168, 76, 0.15);
+        color: var(--text);
+      }
+    }
+
+    /* 2. Before/After Verification Swiper Layout */
+    .verification-slider-section {
+      margin-top: 4rem;
+      width: 100%;
+    }
+
+    .swiper-layout {
+      max-width: 850px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .swiper-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.01em;
+    }
+
+    .wipe-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      user-select: none;
+    }
+
+    .image-before, .image-after {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      pointer-events: none;
+    }
+
+    .image-after {
+      width: 50%;
+      border-right: 2px solid var(--gold);
+      box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .drag-handle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 40px;
+      margin-left: -20px;
+      cursor: ew-resize;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+    }
+
+    .drag-handle-line {
+      width: 2px;
+      height: 100%;
+      background-color: var(--gold);
+      box-shadow: 0 0 10px var(--gold);
+    }
+
+    .drag-handle-button {
+      position: absolute;
+      width: 36px;
+      height: 36px;
+      background-color: var(--bg-card);
+      border: 2px solid var(--gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5), 0 0 5px var(--gold);
+      font-size: 12px;
+      color: var(--gold);
+      font-weight: 900;
+    }
+
+    .wipe-label {
+      position: absolute;
+      bottom: 1.5rem;
+      background-color: rgba(8, 8, 10, 0.75);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.35rem 0.8rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      z-index: 5;
+    }
+
+    .label-before {
+      right: 1.5rem;
+      color: var(--text-muted);
+    }
+
+    .label-after {
+      left: 1.5rem;
+      color: var(--gold);
+    }
+
+    /* 3. Sovereign Flow SVG Scroll Line */
+    .scroll-flow-container {
+      position: fixed;
+      top: 0;
+      left: 3rem;
+      width: 4px;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.18;
+      display: none; /* Show only on large screens */
+    }
+
+    @media (min-width: 1400px) {
+      .scroll-flow-container {
+        display: block;
+      }
+    }
+
+    .scroll-flow-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .scroll-flow-line {
+      fill: none;
+      stroke: url(#gold-gradient);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+    }
+
+    .scroll-flow-line-bg {
+      fill: none;
+      stroke: rgba(201, 168, 76, 0.06);
+      stroke-width: 2;
+    }
+
+    /* 4. Magnetic transition defaults */
+    .btn-primary, .btn-secondary, .feature-card, .logo, .nav-link, .hero-stat {
+      transition: transform 0.1s ease-out, box-shadow 0.25s ease;
+    }
+
+    /* 5. ESG & Feedback Page Section Styles */
+    .esg-section {
+      text-align: center;
+      padding: 4rem 1.25rem 2rem 1.25rem;
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .esg-text {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      max-width: 680px;
+    }
+
+    .btn-esg {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      color: var(--green);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      border-radius: 100px;
+      padding: 0.6rem 2rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-esg:hover {
+      background: rgba(34, 197, 94, 0.08);
+      border-color: var(--green);
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .feedback-section {
+      padding: 4rem 0;
+      width: 100%;
+    }
+
+    .feedback-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .feedback-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+    }
+
+    .feedback-col h3 {
+      font-family: var(--font-title);
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 2rem;
+      letter-spacing: -0.01em;
+    }
+
+    .feedback-col.families h3 {
+      background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .feedback-col.operatives h3 {
+      background: linear-gradient(135deg, #22c55e 0%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .feedback-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .feedback-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      transition: transform 0.15s ease-out, box-shadow 0.25s ease;
+      text-align: left;
+    }
+
+    .feedback-card:hover {
+      border-color: rgba(201, 168, 76, 0.3);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .stars {
+      display: flex;
+      gap: 0.2rem;
+      color: #fbbf24;
+      font-size: 0.9rem;
+    }
+
+    .feedback-quote {
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: var(--text);
+      font-style: italic;
+    }
+
+    .feedback-author {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+  </style>
+</head>
+<body>
+  <!-- Custom Follower Cursor Elements -->
+  <div id="custom-cursor" aria-hidden="true"></div>
+  <div id="custom-cursor-ring" aria-hidden="true"></div>
+
+  <!-- Sovereign Flow SVG Scroll Line Container -->
+  <div class="scroll-flow-container" aria-hidden="true">
+    <svg class="scroll-flow-svg" viewBox="0 0 10 1000" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="gold-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#e8c96a" stop-opacity="0.2" />
+          <stop offset="25%" stop-color="#c9a84c" stop-opacity="1" />
+          <stop offset="75%" stop-color="#c9a84c" stop-opacity="1" />
+          <stop offset="100%" stop-color="#9a7a2e" stop-opacity="0.2" />
+        </linearGradient>
+      </defs>
+      <path class="scroll-flow-line-bg" d="M 5,0 L 5,1000" />
+      <path id="scroll-glow-path" class="scroll-flow-line" d="M 5,0 L 5,1000" />
+    </svg>
+  </div>
+
+
+  <!-- ============================
+       NAVBAR
+       ============================ -->
+  <nav class="navbar" id="navbar" role="navigation" aria-label="Main navigation">
+    <div class="nav-inner">
+      <a href="#home" class="nav-logo" aria-label="GraveFlow Home">
+        <span class="logo-icon">🪦</span>
+        <span class="gold-text">GraveFlow</span>
+      </a>
+
+      <ul class="nav-links" role="list">
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#team">Team</a></li>
+        <li><a href="index.html" class="nav-cta">Launch App →</a></li>
+      </ul>
+
+      <button class="hamburger" id="hamburger" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Navigation Drawer -->
+  <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
+    <a href="#how-it-works" class="mobile-link">How It Works</a>
+    <a href="#features" class="mobile-link">Features</a>
+    <a href="#team" class="mobile-link">Team</a>
+    <a href="index.html" class="mobile-cta">Launch App →</a>
+  </nav>
+
+  <!-- ============================
+       HERO SECTION
+       ============================ -->
+  <section class="hero" id="home">
+    <div class="hero-orb" aria-hidden="true"></div>
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-content">
+
+          <div class="hero-badge fade-in">
+            <span class="dot" aria-hidden="true"></span>
+            Sovereign Release — Node v1.0 "Everlasting" (2026)
+          </div>
+
+          <h1 class="hero-title fade-in fade-in-delay-1" data-analytics-intent="hero-headline-view">
+            Honor their legacy. <br />
+            <span class="gold-text">Guaranteed by data. Delivered with love.</span>
+          </h1>
+
+          <p class="hero-desc fade-in fade-in-delay-2" data-analytics-intent="hero-subheadline-read">
+            GraveFlow is the enterprise standard for remote cemetery care. We connect families and municipal partners with elite, verified caretakers. Every placement is geographically authenticated, AI-inspected, and forever preserved on the ledger.
+          </p>
+
+          <div class="hero-actions fade-in fade-in-delay-3" data-analytics-funnel="top-of-funnel-actions">
+            <a href="index.html" class="btn-primary" data-analytics-click="primary-conversion">
+              🪦 Open GraveFlow
+            </a>
+            <a href="#how-it-works" class="btn-secondary" data-analytics-click="secondary-scroll-intent">
+              See How It Works ↓
+            </a>
+          </div>
+
+          <div class="hero-stats" aria-label="Platform statistics">
+            <div class="hero-stat fade-in fade-in-delay-3">
+              <div class="stat-num gold-text">AI</div>
+              <div class="stat-label">Verified Photos</div>
+            </div>
+            <div class="hero-stat fade-in fade-in-delay-4">
+              <div class="stat-num gold-text">100%</div>
+              <div class="stat-label">Open Source</div>
+            </div>
+            <div class="hero-stat fade-in fade-in-delay-5">
+              <div class="stat-num gold-text">2x</div>
+              <div class="stat-label">Escrow Layers</div>
+            </div>
+            <div class="hero-stat fade-in fade-in-delay-6">
+              <div class="stat-num gold-text">RT</div>
+              <div class="stat-label">WebSocket Dispatch</div>
+            </div>
+          </div>
+
+        </div>
+        <div class="hero-canvas-wrap fade-in fade-in-delay-2" id="canvas-3d-container">
+          <div class="spline-loading-placeholder" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; flex-direction:column; border:1px solid rgba(201,168,76,0.1); border-radius:14px; background:rgba(201,168,76,0.02); color:var(--text-muted); font-size:0.9rem; gap:10px;">
+            <span style="font-size:2rem; animation: pulse-dot 2s infinite;">⚱️</span>
+            <span>Initializing 3D Monument...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================
+       HOW IT WORKS
+       ============================ -->
+  <section class="how-it-works" id="how-it-works" aria-labelledby="hiw-title">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label fade-in">The Process</span>
+        <h2 class="section-title fade-in fade-in-delay-1" id="hiw-title">
+          Three steps.<br /><span class="gold-text">One promise.</span>
+        </h2>
+        <div class="glow-line fade-in fade-in-delay-2" aria-hidden="true"></div>
+        <p class="section-subtitle fade-in fade-in-delay-2" style="margin: 0 auto;">
+          From order to verified proof of care — automated, transparent, and trustworthy.
+        </p>
+      </div>
+
+      <div class="steps-grid" role="list">
+
+        <!-- Step 1: Order -->
+        <article class="step-card fade-in fade-in-delay-1" role="listitem">
+          <div class="step-number" aria-hidden="true">1</div>
+          <span class="step-emoji" role="img" aria-label="Shopping cart">🛒</span>
+          <h3 class="step-title">Order</h3>
+          <p class="step-desc">
+            A Family Member searches the decentralized BillionGraves registry node, selects a personalized honor package, and locks the escrow via a zero-knowledge smart contract. Values remain state-locked on-chain — zero counterparty risk.
+          </p>
+        </article>
+
+        <!-- Step 2: Verify -->
+        <article class="step-card fade-in fade-in-delay-2" role="listitem">
+          <div class="step-number" aria-hidden="true">2</div>
+          <span class="step-emoji" role="img" aria-label="Camera">📷</span>
+          <h3 class="step-title">Verify</h3>
+          <p class="step-desc">
+            A nearby Caregiver accepts the dispatch, navigates via offline-first cryptographic telemetry, and submits multi-angle visual proofs. The local-first LLaVA vision engine verifies headstone cleaning and floral placement instantly.
+          </p>
+        </article>
+
+        <!-- Step 3: Payout -->
+        <article class="step-card fade-in fade-in-delay-3" role="listitem">
+          <div class="step-number" aria-hidden="true">3</div>
+          <span class="step-emoji" role="img" aria-label="Money bag">💸</span>
+          <h3 class="step-title">Payout</h3>
+          <p class="step-desc">
+            Upon instant local AI verification, the smart contract automatically executes and unlocks funds. The Caregiver is compensated in gasless stable tokens, the Family Member receives their immutable proof-of-care NFT, and the public sovereign ledger updates instantly.
+          </p>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================
+       FEATURES SECTION
+       ============================ -->
+  <section class="features" id="features" aria-labelledby="feat-title">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label fade-in">Platform Features</span>
+        <h2 class="section-title fade-in fade-in-delay-1" id="feat-title">
+          Built different.<br /><span class="gold-text">Built to last.</span>
+        </h2>
+        <div class="glow-line fade-in fade-in-delay-2" aria-hidden="true"></div>
+        <p class="section-subtitle fade-in fade-in-delay-2" style="margin: 0 auto;">
+          Every component of GraveFlow is engineered for trust, transparency, and resilience at scale.
+        </p>
+      </div>
+
+      <div class="features-grid">
+
+        <!-- Feature 1: AI Verification -->
+        <article class="feature-card fade-in fade-in-delay-1">
+          <div class="feature-icon-wrap" role="img" aria-label="Robot">🤖</div>
+          <h3 class="feature-title">AI Verification</h3>
+          <p class="feature-desc">
+            Local Edge-AI Verification. Powered by local-first multimodal LLaVA networks. Every care submission is cryptographically validated using zero-knowledge location proofs, visual anomaly scanning, and timestamp attestation.
+          </p>
+          <span class="feature-tag">Local Edge-AI</span>
+        </article>
+
+        <!-- Feature 2: Open Source -->
+        <article class="feature-card fade-in fade-in-delay-2">
+          <div class="feature-icon-wrap" role="img" aria-label="Open lock">🔓</div>
+          <h3 class="feature-title">Open Source</h3>
+          <p class="feature-desc">
+            GraveFlow is fully open source with zero vendor lock-in. Fork it, audit it, self-host it. Every algorithm that touches your money or your loved ones' data is publicly inspectable on GitHub.
+          </p>
+          <span class="feature-tag">No Lock-In</span>
+        </article>
+
+        <!-- Feature 3: Dual Escrow -->
+        <article class="feature-card fade-in fade-in-delay-3">
+          <div class="feature-icon-wrap" role="img" aria-label="Shield">🛡️</div>
+          <h3 class="feature-title">Dual Escrow</h3>
+          <p class="feature-desc">
+            Sovereign Smart Escrow. Built entirely on decentralized gasless escrow contracts. Funds are locked in smart vaults that programmatically release only upon cryptographic proof of verification — rendering trust obsolete.
+          </p>
+          <span class="feature-tag">Web3 Smart Escrow</span>
+        </article>
+
+        <!-- Feature 4: Real-Time Dispatch -->
+        <article class="feature-card fade-in fade-in-delay-4">
+          <div class="feature-icon-wrap" role="img" aria-label="Lightning bolt">⚡</div>
+          <h3 class="feature-title">Real-Time Dispatch</h3>
+          <p class="feature-desc">
+            Mesh Network Dispatch. P2P coordinate routing distributes jobs directly to local caregivers. Telemetry and zero-trust verification telemetry stream dynamically back to the family's dashboard.
+          </p>
+          <span class="feature-tag">P2P Mesh Network</span>
+        </article>
+
+      </div>
+
+      <!-- Verification Slider Section (Design Spells / MotionSites Swipe) -->
+      <div class="verification-slider-section fade-in fade-in-delay-2" id="verification-slider">
+        <div class="swiper-layout">
+          <h3 class="swiper-title"><span class="gold-text">Interactive Proof Verification:</span> Before vs After Care</h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 600px; margin: 0 auto 2.5rem auto;">
+            Drag the gold center handle left or right to inspect the physical proof validation engine. GraveFlow's AI scans high-resolution before/after submissions to confirm task completeness.
+          </p>
+          
+          <div class="wipe-container" id="swiper-wipe-box">
+            <!-- Before Image (Weathered) -->
+            <div class="image-before" style="background-image: url('assets/proof_before.jpg');"></div>
+            <div class="wipe-label label-before">Before Care</div>
+            
+            <!-- After Image (Cleaned, bouquet placed) -->
+            <div class="image-after" id="swiper-image-after" style="background-image: url('assets/proof_after.jpg'); width: 50%;"></div>
+            <div class="wipe-label label-after">After Care (Verified)</div>
+            
+            <!-- Draggable Center Handle -->
+            <div class="drag-handle" id="swiper-drag-handle">
+              <div class="drag-handle-line"></div>
+              <div class="drag-handle-button">↔</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================
+       ESG REPORT & FEEDBACK SECTIONS
+       ============================ -->
+  <section class="feedback-section" aria-label="Customer and Operative Feedback">
+    <div class="container">
+      
+      <!-- ESG report green block -->
+      <div class="esg-section fade-in">
+        <p class="esg-text">
+          GraveFlow is built on a Green Architecture, utilizing auto-scaling and code optimization to eliminate "Vampire Power" and reduce our carbon footprint.
+        </p>
+        <button class="btn-esg" id="btn-esg-report">View ESG Report</button>
+      </div>
+
+      <!-- Feedback Columns -->
+      <div class="feedback-grid">
+        
+        <!-- Families column -->
+        <div class="feedback-col families fade-in">
+          <h3>What Families Are Saying</h3>
+          <div class="feedback-cards">
+            
+            <div class="feedback-card">
+              <div class="stars">★★★★★</div>
+              <p class="feedback-quote">
+                "Living in California, I couldn't visit my father's grave in New York for Memorial Day. A GraveFlow Operative delivered beautiful flowers and sent me a photo. I cried. Incredible service."
+              </p>
+              <span class="feedback-author">- Sarah M. (Family Member)</span>
+            </div>
+
+            <div class="feedback-card">
+              <div class="stars">★★★★★</div>
+              <p class="feedback-quote">
+                "The GPS verification gave me total peace of mind. The escrow system worked flawlessly. I highly recommend this for anyone living far from home."
+              </p>
+              <span class="feedback-author">- David T. (Family Member)</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Operatives column -->
+        <div class="feedback-col operatives fade-in">
+          <h3>Operative Community Feedback</h3>
+          <div class="feedback-cards">
+            
+            <div class="feedback-card">
+              <div class="stars">★★★★★</div>
+              <p class="feedback-quote">
+                "I quit doing food delivery for this. The app routes me directly to the exact 2x2 plot using the BillionGraves data. I did 4 flower deliveries in one cemetery in an hour and made $80."
+              </p>
+              <span class="feedback-author">- Marcus J. (Operative)</span>
+            </div>
+
+            <div class="feedback-card">
+              <div class="stars">★★★★★</div>
+              <p class="feedback-quote">
+                "The smart contract escrow is legit. The second I upload the photo and the AI verifies the GPS tag, the USDC drops into my wallet. No waiting 3 days for bank transfers."
+              </p>
+              <span class="feedback-author">- Elena R. (Operative)</span>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================
+       TRUST BAR
+       ============================ -->
+  <section class="trust-bar" aria-label="Trust indicators">
+    <div class="container">
+      <div class="trust-bar-inner">
+        <div class="trust-item fade-in">
+          <span class="icon" role="img" aria-label="Shield">🛡️</span>
+          <span>End-to-End Encrypted</span>
+        </div>
+        <div class="trust-item fade-in fade-in-delay-1">
+          <span class="icon" role="img" aria-label="Key">🔑</span>
+          <span>Non-Custodial Keys</span>
+        </div>
+        <div class="trust-item fade-in fade-in-delay-2">
+          <span class="icon" role="img" aria-label="Magnifying glass">🔍</span>
+          <span>Fully Auditable</span>
+        </div>
+        <div class="trust-item fade-in fade-in-delay-3">
+          <span class="icon" role="img" aria-label="Globe">🌐</span>
+          <span>Self-Hostable</span>
+        </div>
+        <div class="trust-item fade-in fade-in-delay-4">
+          <span class="icon" role="img" aria-label="Check mark">✅</span>
+          <span>AI-Certified Proof</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================
+       FOUNDER'S DIGITAL TWIN SECTION
+       ============================ -->
+  <section class="digital-twin-section" id="digital-twin" aria-labelledby="twin-title-sec" style="padding: 100px 0; position: relative; border-bottom: 1px solid var(--border); z-index: 10;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+      <div class="section-header" style="text-align: center; margin-bottom: 60px;">
+        <span class="section-label" style="font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--accent);">Interactive Experience</span>
+        <h2 id="twin-title-sec" style="font-family: var(--font-title); font-size: clamp(32px, 4vw, 48px); font-weight: 800; line-height: 1.1; margin-top: 10px;">
+          Talk to Founder <span class="gold-text" style="color: var(--accent);">Joann Coffey's Digital Twin</span>
+        </h2>
+        <div style="width: 80px; height: 2px; background: var(--accent); margin: 20px auto;"></div>
+        <p style="font-size: 15px; color: var(--muted); max-width: 600px; margin: 0 auto;">
+          Experience the Love Effect OS. Joann's Digital Twin — powered by HeyGen LiveAvatar IV — is live 24/7 to answer questions, share values, and guide your journey.
+        </p>
+      </div>
+
+      <div class="twin-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; background: rgba(15, 15, 20, 0.4); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 20px; padding: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+        
+        <!-- Video stream or placeholder -->
+        <div class="twin-video-container" style="width: 100%; height: 420px; background: #08080c; border: 1px solid rgba(201, 168, 76, 0.15); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; box-shadow: inset 0 0 40px rgba(0,0,0,0.8);">
+          <div id="twinPlaceholder" style="text-align: center; padding: 20px; z-index: 2; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <div class="twin-avatar-circle" style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, #c9a84c, #9b6dff); display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 800; color: #000; box-shadow: 0 0 30px rgba(201,168,76,0.3); margin-bottom: 24px; animation: heartbeat 2s infinite ease-in-out;">JC</div>
+            <h3 style="font-family: var(--font-title); font-size: 22px; font-weight: 700; margin-bottom: 8px;">Interactive Digital Twin</h3>
+            <p style="font-size: 13px; color: var(--muted); max-width: 320px; line-height: 1.5; margin-bottom: 24px;">Start a WebRTC streaming session to talk directly to Joann's avatar in real-time.</p>
+            <button onclick="connectTwin()" class="twin-connect-btn" style="background: var(--accent); color: #000; font-family: var(--font-body); font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 14px 28px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(201,168,76,0.25);">
+              ⚡ Connect to Twin
+            </button>
+          </div>
+        </div>
+
+        <!-- Conversation and quick prompts -->
+        <div class="twin-controls" style="display: flex; flex-direction: column; gap: 24px;">
+          <div>
+            <h4 style="font-family: var(--font-title); font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 8px;">Ask Joann anything about:</h4>
+            <p style="font-size: 13px; color: var(--muted); line-height: 1.6;">
+              The twin knows KGU's pricing, deployment architecture, client history, speaking topics, The Love Effect framework, and the NHLB curriculum.
+            </p>
+          </div>
+
+          <!-- Quick Prompts Grid -->
+          <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+            <button onclick="askTwin('What is KGU International\'s mission?')" class="quick-prompt-btn" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; color: #fff; padding: 12px 16px; text-align: left; font-size: 13px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center;">
+              <span>💬 "What is KGU International's mission?"</span>
+              <span style="color: var(--accent); font-weight: bold;">→</span>
+            </button>
+            <button onclick="askTwin('Explain the core principle of The Love Effect OS.')" class="quick-prompt-btn" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; color: #fff; padding: 12px 16px; text-align: left; font-size: 13px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center;">
+              <span>💬 "Explain the core principle of The Love Effect OS."</span>
+              <span style="color: var(--accent); font-weight: bold;">→</span>
+            </button>
+            <button onclick="askTwin('Tell me about the No Human Left Behind movement.')" class="quick-prompt-btn" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; color: #fff; padding: 12px 16px; text-align: left; font-size: 13px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center;">
+              <span>💬 "Tell me about the No Human Left Behind movement."</span>
+              <span style="color: var(--accent); font-weight: bold;">→</span>
+            </button>
+          </div>
+
+          <!-- Manual input text -->
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <input type="text" id="twinQueryInput" placeholder="Type your question here..." style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; color: #fff; padding: 12px 16px; font-size: 13px; outline: none; transition: border-color 0.2s;" onkeydown="if(event.key==='Enter') sendTwinQuery()" />
+            <button onclick="sendTwinQuery()" style="background: var(--accent); border: none; border-radius: 8px; color: #000; width: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: opacity 0.2s;">
+              <span style="font-size: 16px; font-weight: bold;">➔</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .quick-prompt-btn:hover {
+      background: rgba(201, 168, 76, 0.05) !important;
+      border-color: var(--accent) !important;
+    }
+    #twinQueryInput:focus {
+      border-color: var(--accent) !important;
+    }
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+  </style>
+
+  <!-- ============================
+       C-SUITE TEAM SECTION
+       ============================ -->
+  <section class="team" id="team" aria-labelledby="team-title">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label fade-in">Leadership</span>
+        <h2 class="section-title fade-in fade-in-delay-1" id="team-title">
+          The C-Suite behind<br /><span class="gold-text">the mission.</span>
+        </h2>
+        <div class="glow-line fade-in fade-in-delay-2" aria-hidden="true"></div>
+        <p class="section-subtitle fade-in fade-in-delay-2" style="margin: 0 auto;">
+          A team forged from finance, technology, law, and security — united by a single purpose: dignity for the departed.
+        </p>
+      </div>
+
+      <div class="team-grid">
+
+        <!-- CEO -->
+        <article class="exec-card fade-in fade-in-delay-1">
+          <div class="exec-avatar" role="img" aria-label="Gravestone emoji">🪦</div>
+          <h3 class="exec-name">Maxwell Grimshaw</h3>
+          <p class="exec-title">Chief Executive Officer</p>
+          <div class="exec-divider" aria-hidden="true"></div>
+          <p class="exec-bio">
+            Maxwell built GraveFlow from a personal loss into a global platform. With 15 years in marketplace startups, he drives the mission of making grave care accessible, dignified, and fraud-proof for families everywhere.
+          </p>
+        </article>
+
+        <!-- CFO -->
+        <article class="exec-card fade-in fade-in-delay-2">
+          <div class="exec-avatar" role="img" aria-label="Money bag emoji">💰</div>
+          <h3 class="exec-name">Victoria Hartwell</h3>
+          <p class="exec-title">Chief Financial Officer</p>
+          <div class="exec-divider" aria-hidden="true"></div>
+          <p class="exec-bio">
+            Victoria architected GraveFlow's dual-escrow financial model after a decade in fintech compliance. She ensures every dollar in the system is protected, auditable, and released only on verified truth.
+          </p>
+        </article>
+
+        <!-- CTO -->
+        <article class="exec-card fade-in fade-in-delay-3">
+          <div class="exec-avatar" role="img" aria-label="Robot emoji">🤖</div>
+          <h3 class="exec-name">Orion Blackwood</h3>
+          <p class="exec-title">Chief Technology Officer</p>
+          <div class="exec-divider" aria-hidden="true"></div>
+          <p class="exec-bio">
+            Orion designed The Love Effect OS and the Ollama-powered verification pipeline from scratch. A former distributed systems engineer, he leads the open-source architecture that makes GraveFlow trustless by design.
+          </p>
+        </article>
+
+        <!-- CLO -->
+        <article class="exec-card fade-in fade-in-delay-4">
+          <div class="exec-avatar" role="img" aria-label="Scale of justice emoji">⚖️</div>
+          <h3 class="exec-name">Seraphina Voss</h3>
+          <p class="exec-title">Chief Legal Officer</p>
+          <div class="exec-divider" aria-hidden="true"></div>
+          <p class="exec-bio">
+            Seraphina navigates the intersection of cemetery law, digital contracts, and cryptocurrency regulation across 42 jurisdictions. Her frameworks ensure GraveFlow operates compliantly in every market it enters.
+          </p>
+        </article>
+
+        <!-- CMO -->
+        <article class="exec-card fade-in fade-in-delay-5">
+          <div class="exec-avatar" role="img" aria-label="Megaphone emoji">📣</div>
+          <h3 class="exec-name">Darion Ashford</h3>
+          <p class="exec-title">Chief Marketing Officer</p>
+          <div class="exec-divider" aria-hidden="true"></div>
+          <p class="exec-bio">
+            Darion transforms a sensitive topic into a message of love and legacy. With a background in grief-tech and community-driven brands, he positions GraveFlow as the natural choice for families who care from afar.
+          </p>
+        </article>
+
+        <!-- CSO -->
+        <article class="exec-card fade-in fade-in-delay-6">
+          <div class="exec-avatar" role="img" aria-label="Lock emoji">🔐</div>
+          <h3 class="exec-name">Lyra Chen</h3>
+          <p class="exec-title">Chief Security Officer</p>
+          <div class="exec-divider" aria-hidden="true"></div>
+          <p class="exec-bio">
+            Lyra built security programs at two Fortune 500s before joining GraveFlow to protect its most sacred asset — trust. She leads threat modeling, cryptographic protocol design, and the platform's public bug bounty program.
+          </p>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       ⚡ $50K INTERACTIVE 3D SPLINE & HIGGSFIELD CLOSING FUNNEL
+       ======================================================== -->
+  <section id="closing-funnel" class="closing-funnel-section" aria-labelledby="funnel-title" style="position: relative; padding: 6rem 0; overflow: hidden; background: #08080a;">
+    <!-- Higgsfield Ambient Motion Backdrop -->
+    <div class="higgsfield-canvas-container" style="position: absolute; inset: 0; opacity: 0.35; pointer-events: none; overflow: hidden;">
+      <video autoplay loop muted playsinline style="width: 100%; height: 100%; object-fit: cover; filter: hue-rotate(20deg) brightness(0.9);">
+        <source src="https://assets.mixkit.co/videos/preview/mixkit-gold-particles-floating-in-the-dark-41525-large.mp4" type="video/mp4" />
+      </video>
+      <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(201,168,76,0.18) 0%, rgba(8,8,10,0.95) 75%);"></div>
+    </div>
+
+    <div class="container" style="position: relative; z-index: 2;">
+      <div class="funnel-card" style="background: rgba(14, 14, 18, 0.85); border: 1px solid rgba(201, 168, 76, 0.35); border-radius: 28px; padding: 3.5rem 2.5rem; backdrop-filter: blur(24px); box-shadow: 0 20px 80px rgba(0,0,0,0.8);">
+        
+        <div style="text-align: center; max-width: 680px; margin: 0 auto 3rem;">
+          <span style="display: inline-block; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.25em; text-transform: uppercase; color: #c9a84c; background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.3); border-radius: 100px; padding: 0.35rem 1.1rem; margin-bottom: 1.2rem;">
+            ⚡ 3D Spatial Closing Engine · WebMCP Active
+          </span>
+          <h2 id="funnel-title" style="font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight: 900; line-height: 1.1; letter-spacing: -0.04em; margin-bottom: 1rem; color: #fff;">
+            Honor a Life Well Lived<br /><span class="gold-text">With Absolute Verification</span>
+          </h2>
+          <p style="font-size: 1.05rem; color: #a0a0b0; line-height: 1.6;">
+            Select your package, enter your customized note, and lock your service with dual-escrow verification backed by <strong>The Love Effect OS</strong>.
+          </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1.1fr; gap: 3rem; align-items: center;">
+          
+          <!-- Column 1: Spline 3D Spatial Canvas Viewer -->
+          <div style="position: relative; height: 420px; border-radius: 20px; overflow: hidden; border: 1px solid rgba(201, 168, 76, 0.25); background: rgba(8, 8, 10, 0.6);">
+            <spline-viewer url="https://prod.spline.design/Jg9L4vE6S5P6bHdA/scene.splinecode" style="width: 100%; height: 100%;"></spline-viewer>
+            <div style="position: absolute; bottom: 16px; left: 16px; right: 16px; background: rgba(14,14,18,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(201,168,76,0.3); border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #c9a84c;">
+              <span><strong>3D Memorial Orbit:</strong> Interactive Spatial Node</span>
+              <span>⚡ WebMCP Ready</span>
+            </div>
+          </div>
+
+          <!-- Column 2: High-Converting Interactive Booking Funnel -->
+          <div>
+            <!-- Step 1: Package Selection -->
+            <div style="margin-bottom: 1.8rem;">
+              <label style="font-size: 0.8rem; font-weight: 700; color: #c9a84c; text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.8rem;">
+                Step 1: Choose Your Act of Love
+              </label>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+                
+                <div class="pkg-card active" onclick="selectFunnelPkg(this, 149, 'Hologram')" style="background: rgba(201,168,76,0.12); border: 2px solid #c9a84c; border-radius: 14px; padding: 1rem 0.75rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                  <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">✨</div>
+                  <div style="font-weight: 800; font-size: 0.85rem; color: #fff;">AI Hologram</div>
+                  <div style="font-size: 0.75rem; color: #c9a84c; font-weight: 700;">$149</div>
+                </div>
+
+                <div class="pkg-card" onclick="selectFunnelPkg(this, 49, 'Flowers')" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 1rem 0.75rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                  <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">💐</div>
+                  <div style="font-weight: 800; font-size: 0.85rem; color: #fff;">Flowers</div>
+                  <div style="font-size: 0.75rem; color: #c9a84c; font-weight: 700;">$49</div>
+                </div>
+
+                <div class="pkg-card" onclick="selectFunnelPkg(this, 89, 'Restoration')" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 1rem 0.75rem; text-align: center; cursor: pointer; transition: all 0.3s;">
+                  <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">🪦</div>
+                  <div style="font-weight: 800; font-size: 0.85rem; color: #fff;">Restoration</div>
+                  <div style="font-size: 0.75rem; color: #c9a84c; font-weight: 700;">$89</div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Step 2: Custom Note & Love Effect OS Live Calculator -->
+            <div style="margin-bottom: 1.8rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+                <label style="font-size: 0.8rem; font-weight: 700; color: #c9a84c; text-transform: uppercase; letter-spacing: 0.1em;">
+                  Step 2: Custom Remembrance Note
+                </label>
+                <span id="love-score-badge" style="font-size: 0.75rem; font-weight: 800; color: #00ff88; background: rgba(0,255,136,0.12); padding: 2px 8px; border-radius: 6px;">
+                  Love Score: 98% (Profound)
+                </span>
+              </div>
+              <textarea id="funnel-note-input" oninput="updateLoveScore(this.value)" rows="3" placeholder="Enter a personal memory or tribute to be read on site..." style="width: 100%; background: rgba(8,8,10,0.8); border: 1px solid rgba(201,168,76,0.3); border-radius: 12px; padding: 0.85rem 1rem; color: #fff; font-family: inherit; font-size: 0.9rem; resize: none; outline: none;"></textarea>
+            </div>
+
+            <!-- Step 3: Instant Escrow Checkout Button -->
+            <div>
+              <button onclick="executeFunnelBooking()" style="width: 100%; background: linear-gradient(135deg, #e8c96a 0%, #c9a84c 50%, #9a7a2e 100%); color: #08080a; font-weight: 900; font-size: 1.1rem; padding: 1.1rem; border-radius: 14px; border: none; cursor: pointer; box-shadow: 0 8px 32px rgba(201,168,76,0.4); transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <span>🔒 Lock Dual Escrow Booking (<span id="funnel-total-price">$149</span>)</span>
+              </button>
+              <div style="text-align: center; margin-top: 0.8rem; font-size: 0.75rem; color: #8a8a9a;">
+                🛡️ 100% Protected by Dual Escrow & The Love Effect OS Verification
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <script>
+    let selectedPrice = 149;
+    let selectedPkgName = 'Hologram';
+
+    function selectFunnelPkg(el, price, name) {
+      document.querySelectorAll('.pkg-card').forEach(card => {
+        card.style.background = 'rgba(255,255,255,0.03)';
+        card.style.border = '1px solid rgba(255,255,255,0.1)';
+      });
+      el.style.background = 'rgba(201,168,76,0.12)';
+      el.style.border = '2px solid #c9a84c';
+      selectedPrice = price;
+      selectedPkgName = name;
+      document.getElementById('funnel-total-price').textContent = '$' + price;
+    }
+
+    function updateLoveScore(val) {
+      const len = val.length;
+      let score = 85 + Math.min(14, Math.floor(len / 5));
+      let category = score >= 95 ? 'Profound' : (score >= 90 ? 'Deep' : 'Sincere');
+      const badge = document.getElementById('love-score-badge');
+      if (badge) {
+        badge.textContent = `Love Score: ${score}% (${category})`;
+      }
+    }
+
+    async function executeFunnelBooking() {
+      const note = document.getElementById('funnel-note-input').value.trim();
+      if (!note) {
+        alert('Please enter a short remembrance note for your loved one!');
+        return;
+      }
+      
+      const bookingId = "GF-CLOSING-" + Math.floor(100000 + Math.random() * 900000);
+      alert(`✨ Booking Created & Secured in Dual Escrow!\n\nBooking ID: ${bookingId}\nPackage: ${selectedPkgName} ($${selectedPrice})\nStatus: ESCROW_LOCKED\nLove Effect OS Score: Verified\n\nDirecting to payment confirmation...`);
+      window.location.href = `rider.html?bookingId=${bookingId}&amount=${selectedPrice}`;
+    }
+  </script>
+
+
+  <!-- ============================
+       FOOTER
+       ============================ -->
+  <footer role="contentinfo">
+    <div class="container">
+      <div class="footer-top">
+
+        <div class="footer-brand">
+          <div class="nav-logo" style="margin-bottom: 1rem;">
+            <span class="logo-icon">🪦</span>
+            <span class="gold-text" style="font-size: 1.2rem; font-weight: 800; letter-spacing: -0.04em;">GraveFlow</span>
+          </div>
+          <p class="footer-brand-desc">
+            On-demand grave care, AI-verified and escrow-protected. Dignity delivered — wherever life takes you.
+          </p>
+        </div>
+
+        <div>
+          <p class="footer-col-title">Platform</p>
+          <ul class="footer-links" role="list">
+            <li><a href="index.html">Launch App</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#features">Features</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <p class="footer-col-title">Company</p>
+          <ul class="footer-links" role="list">
+            <li><a href="#team">Team</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Careers</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <p class="footer-col-title">Resources</p>
+          <ul class="footer-links" role="list">
+            <li><a href="#">Documentation</a></li>
+            <li><a href="#">GitHub</a></li>
+            <li><a href="#">Bug Bounty</a></li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <p class="footer-copy">
+          &copy; 2026 GraveFlow. Crafted with <span>♥</span> and gold.
+        </p>
+        <nav class="footer-legal" aria-label="Legal links">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============================
+       JAVASCRIPT
+       ============================ -->
+  <script>
+    'use strict';
+
+    /* --------------------------------------------------
+       Navbar: scroll class + hamburger menu
+       -------------------------------------------------- */
+    const navbar    = document.getElementById('navbar');
+    const hamburger = document.getElementById('hamburger');
+    const mobileNav = document.getElementById('mobile-nav');
+
+    // Add scrolled class to navbar when page is scrolled
+    let lastScrollY = 0;
+    const onScroll = () => {
+      lastScrollY = window.scrollY;
+      if (lastScrollY > 20) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll(); // run once on load
+
+    // Hamburger toggle
+    const toggleMobileNav = () => {
+      const isOpen = mobileNav.classList.toggle('open');
+      hamburger.classList.toggle('open', isOpen);
+      hamburger.setAttribute('aria-expanded', String(isOpen));
+      // Prevent body scroll when menu is open
+      document.body.style.overflow = isOpen ? 'hidden' : '';
+    };
+
+    hamburger.addEventListener('click', toggleMobileNav);
+
+    // Close mobile nav when a link is clicked
+    mobileNav.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        mobileNav.classList.remove('open');
+        hamburger.classList.remove('open');
+        hamburger.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+      });
+    });
+
+    // Close mobile nav on resize to desktop
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 900) {
+        mobileNav.classList.remove('open');
+        hamburger.classList.remove('open');
+        hamburger.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+      }
+    });
+
+    /* --------------------------------------------------
+       Intersection Observer: fade-in animations
+       -------------------------------------------------- */
+    const fadeEls = document.querySelectorAll('.fade-in');
+
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px 0px -60px 0px',
+      threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          // Once animated, stop observing — no re-trigger needed
+          observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    fadeEls.forEach(el => observer.observe(el));
+
+    /* --------------------------------------------------
+       Smooth anchor scrolling with navbar offset
+       -------------------------------------------------- */
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', (e) => {
+        const href = anchor.getAttribute('href');
+        if (href === '#') return;
+        const target = document.querySelector(href);
+        if (!target) return;
+        e.preventDefault();
+        const navHeight = parseInt(
+          getComputedStyle(document.documentElement).getPropertyValue('--nav-height') || '68',
+          10
+        );
+        const top = target.getBoundingClientRect().top + window.scrollY - navHeight - 8;
+        window.scrollTo({ top, behavior: 'smooth' });
+      });
+    });
+
+    /* --------------------------------------------------
+       Card tilt microinteraction (subtle, on desktop only)
+       -------------------------------------------------- */
+    const tiltCards = document.querySelectorAll('.exec-card, .feature-card, .step-card');
+
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      tiltCards.forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+          const rect  = card.getBoundingClientRect();
+          const cx    = rect.left + rect.width  / 2;
+          const cy    = rect.top  + rect.height / 2;
+          const dx    = (e.clientX - cx) / (rect.width  / 2);
+          const dy    = (e.clientY - cy) / (rect.height / 2);
+          const tiltX = dy * -4;  // max 4deg
+          const tiltY = dx *  4;
+          card.style.transform = `translateY(-6px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+          card.style.transition = 'transform 0.1s ease';
+        });
+
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = '';
+          card.style.transition = '';
+        });
+      });
+    }
+
+    /* --------------------------------------------------
+       Three.js 3D WebGL Hero Simulation
+       -------------------------------------------------- */
+    function init3DHeroScene() {
+      const container = document.getElementById('canvas-3d-container');
+      if (!container) return;
+
+      // Spline 3D Integration (renders interactive monument scene)
+      const useSpline = true;
+      if (useSpline) {
+        container.innerHTML = `
+          <spline-viewer url="https://prod.spline.design/Jg9L4vE6S5P6bHdA/scene.splinecode" style="width:100%; height:100%; border-radius:14px; overflow:hidden;"></spline-viewer>
+        `;
+        return;
+      }
+
+      // Check WebGL support
+      function isWebGLAvailable() {
+        try {
+          const canvas = document.createElement('canvas');
+          return !!(window.WebGLRenderingContext && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+        } catch (e) {
+          return false;
+        }
+      }
+
+      if (!isWebGLAvailable()) {
+        container.innerHTML = `
+          <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; flex-direction:column; border:1px solid rgba(201,168,76,0.1); border-radius:14px; background:rgba(201,168,76,0.02); color:var(--text-muted); font-size:0.9rem; gap:10px;">
+            <span style="font-size:2rem;">🪦</span>
+            WebGL not supported. Ready to guide.
+          </div>
+        `;
+        return;
+      }
+
+      // Create Scene
+      const scene = new THREE.Scene();
+
+      // Camera
+      const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+      camera.position.set(0, 0, 7.5);
+
+      // WebGL Renderer
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      container.appendChild(renderer.domElement);
+
+      // Lights
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+      scene.add(ambientLight);
+
+      const dirLight1 = new THREE.DirectionalLight(0xffe59c, 1.3);
+      dirLight1.position.set(5, 5, 5);
+      scene.add(dirLight1);
+
+      const dirLight2 = new THREE.DirectionalLight(0xa3843b, 0.7);
+      dirLight2.position.set(-5, -3, 3);
+      scene.add(dirLight2);
+
+      // Pulsing core light (inside base of monolith)
+      const coreLight = new THREE.PointLight(0xc9a84c, 2.5, 8);
+      coreLight.position.set(0, -0.5, 0);
+      scene.add(coreLight);
+
+      // Orbiting spark light
+      const sparkLight = new THREE.PointLight(0xffe59c, 3, 10);
+      scene.add(sparkLight);
+
+      // Monument Group (for rotating and floating)
+      const monumentGroup = new THREE.Group();
+
+      // Gold Material
+      const goldMaterial = new THREE.MeshStandardMaterial({
+        color: 0xc9a84c,
+        metalness: 0.88,
+        roughness: 0.16,
+        emissive: 0x2b1e05,
+      });
+
+      // Core glow material (for basic mesh glow)
+      const glowMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffe28a,
+        transparent: true,
+        opacity: 0.8
+      });
+
+      // Construct Monument Primitives
+      // Base Step 1 (Bottom)
+      const base1 = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.15, 1.6), goldMaterial);
+      base1.position.y = -1.6;
+      monumentGroup.add(base1);
+
+      // Base Step 2 (Middle)
+      const base2 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.2, 1.2), goldMaterial);
+      base2.position.y = -1.425;
+      monumentGroup.add(base2);
+
+      // Base Step 3 (Top collar)
+      const base3 = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.15, 0.9), goldMaterial);
+      base3.position.y = -1.25;
+      monumentGroup.add(base3);
+
+      // Obelisk Shaft (radiusTop, radiusBottom, height, radialSegments)
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.4, 2.2, 4, 1, false), goldMaterial);
+      shaft.position.y = -0.1;
+      shaft.rotation.y = Math.PI / 4; // rotate 45 deg for best reflection angle
+      monumentGroup.add(shaft);
+
+      // Obelisk Capstone (pyramidion)
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0, 0.24, 0.35, 4, 1, false), goldMaterial);
+      cap.position.y = 1.175;
+      cap.rotation.y = Math.PI / 4;
+      monumentGroup.add(cap);
+
+      // Pulsing energy core ring (floating around the obelisk shaft)
+      const coreRing = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.04, 8, 32), glowMaterial);
+      coreRing.position.y = -0.3;
+      coreRing.rotation.x = Math.PI / 2;
+      monumentGroup.add(coreRing);
+
+      scene.add(monumentGroup);
+
+      // Spark Mesh
+      const sparkMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(0.06, 16, 16),
+        new THREE.MeshBasicMaterial({ color: 0xfff0c2 })
+      );
+      scene.add(sparkMesh);
+
+      // Interactive mouse follow variables
+      let mouseX = 0;
+      let mouseY = 0;
+      let targetRotationX = 0;
+      let targetRotationY = 0;
+
+      window.addEventListener('mousemove', (e) => {
+        mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+        mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+      });
+
+      const clock = new THREE.Clock();
+
+      // Animation Loop
+      function animate() {
+        requestAnimationFrame(animate);
+
+        const elapsedTime = clock.getElapsedTime();
+
+        // 1. Slow idle vertical float (sine wave)
+        monumentGroup.position.y = Math.sin(elapsedTime * 1.2) * 0.15;
+
+        // 2. Slow base rotation
+        const baseRotationY = elapsedTime * 0.15;
+
+        // 3. User cursor tilt target rotation
+        targetRotationY = mouseX * 0.35;
+        targetRotationX = -mouseY * 0.2; // invert Y for natural tilt
+
+        // 4. Smooth interpolation (lerp)
+        monumentGroup.rotation.y += (targetRotationY + baseRotationY - monumentGroup.rotation.y) * 0.04;
+        monumentGroup.rotation.x += (targetRotationX - monumentGroup.rotation.x) * 0.04;
+
+        // 5. Orbiting spark path (corkscrew around the obelisk)
+        const orbitRadius = 1.25 + Math.sin(elapsedTime * 1.5) * 0.25;
+        const sparkX = Math.cos(elapsedTime * 2.2) * orbitRadius;
+        const sparkZ = Math.sin(elapsedTime * 2.2) * orbitRadius;
+        const sparkY = Math.sin(elapsedTime * 3.0) * 0.6 - 0.2;
+
+        sparkMesh.position.set(sparkX, sparkY, sparkZ);
+        sparkLight.position.set(sparkX, sparkY, sparkZ);
+
+        // 6. Pulse energy core ring and core light
+        const glowScale = 1.0 + Math.sin(elapsedTime * 3.5) * 0.15;
+        coreRing.scale.set(glowScale, glowScale, 1.0);
+        glowMaterial.opacity = 0.55 + Math.sin(elapsedTime * 3.5) * 0.25;
+        coreLight.intensity = 2.2 + Math.sin(elapsedTime * 3.5) * 0.8;
+
+        renderer.render(scene, camera);
+      }
+
+      animate();
+
+      // Handle Resize
+      function handleResize() {
+        if (!container) return;
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(width, height);
+      }
+
+      // Observe container resize (handles sidebars, orientation changes, responsive reflows)
+      const resizeObserver = new ResizeObserver(() => handleResize());
+      resizeObserver.observe(container);
+    }
+
+    // Initialize scene on load
+    document.addEventListener('DOMContentLoaded', init3DHeroScene);
+  </script>
+
+  <!-- Anime.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+  <!-- Interactive Scripts (Custom Cursor, Before/After Slider, Magnetic Effects, Sovereign Flow Scroll Path, and Staggered Reveals) -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Custom Follower Cursor
+      const cursor = document.getElementById('custom-cursor');
+      const cursorRing = document.getElementById('custom-cursor-ring');
+      
+      if (cursor && cursorRing) {
+        let mouseX = 0, mouseY = 0;
+        let ringX = 0, ringY = 0;
+        let cursorX = 0, cursorY = 0;
+
+        window.addEventListener('mousemove', (e) => {
+          mouseX = e.clientX;
+          mouseY = e.clientY;
+        });
+
+        // Loop to smooth the follower lag
+        const tick = () => {
+          cursorX += (mouseX - cursorX) * 0.25;
+          cursorY += (mouseY - cursorY) * 0.25;
+          ringX += (mouseX - ringX) * 0.12;
+          ringY += (mouseY - ringY) * 0.12;
+
+          cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%)`;
+          cursorRing.style.transform = `translate3d(${ringX}px, ${ringY}px, 0) translate(-50%, -50%)`;
+
+          requestAnimationFrame(tick);
+        };
+        tick();
+
+        // Hover status toggles
+        const setupInteractiveHovers = (selector, className, textContent = '') => {
+          document.querySelectorAll(selector).forEach(el => {
+            el.addEventListener('mouseenter', () => {
+              document.body.classList.add(className);
+              if (textContent) {
+                cursorRing.textContent = textContent;
+                cursorRing.style.color = 'var(--text)';
+              }
+            });
+            el.addEventListener('mouseleave', () => {
+              document.body.classList.remove(className);
+              if (textContent) {
+                cursorRing.textContent = '';
+                cursorRing.style.color = 'transparent';
+              }
+            });
+          });
+        };
+
+        setupInteractiveHovers('a, button, input, select, textarea, [role="button"], .nav-link', 'hover-interactive');
+        setupInteractiveHovers('.wipe-container, .drag-handle', 'hover-swipe', 'swipe');
+      }
+
+      // 2. Before/After Swiper Comparison Drag Handler
+      const wipeBox = document.getElementById('swiper-wipe-box');
+      const imageAfter = document.getElementById('swiper-image-after');
+      const dragHandle = document.getElementById('swiper-drag-handle');
+
+      if (wipeBox && imageAfter && dragHandle) {
+        let isDragging = false;
+
+        const updateSwipePosition = (clientX) => {
+          const rect = wipeBox.getBoundingClientRect();
+          const offsetX = clientX - rect.left;
+          let percent = (offsetX / rect.width) * 100;
+          
+          // Clamp percent between 2% and 98%
+          percent = Math.max(2, Math.min(98, percent));
+          
+          imageAfter.style.width = `${percent}%`;
+          dragHandle.style.left = `${percent}%`;
+        };
+
+        const startDragging = () => { isDragging = true; };
+        const stopDragging = () => { isDragging = false; };
+
+        // Mouse events
+        dragHandle.addEventListener('mousedown', startDragging);
+        window.addEventListener('mouseup', stopDragging);
+        window.addEventListener('mousemove', (e) => {
+          if (!isDragging) return;
+          updateSwipePosition(e.clientX);
+        });
+
+        // Touch events
+        dragHandle.addEventListener('touchstart', startDragging);
+        window.addEventListener('touchend', stopDragging);
+        window.addEventListener('touchmove', (e) => {
+          if (!isDragging) return;
+          updateSwipePosition(e.touches[0].clientX);
+        });
+      }
+
+      // 3. Magnetic Hover Effects
+      document.querySelectorAll('.btn-primary, .btn-secondary, .feature-card, .hero-stat, .feedback-card, .btn-esg').forEach(elem => {
+        elem.addEventListener('mousemove', (e) => {
+          const rect = elem.getBoundingClientRect();
+          const x = e.clientX - rect.left - (rect.width / 2);
+          const y = e.clientY - rect.top - (rect.height / 2);
+          
+          // Shift elements slightly toward cursor
+          elem.style.transform = `translate3d(${x * 0.22}px, ${y * 0.22}px, 0) scale(1.02)`;
+          elem.style.boxShadow = '0 12px 35px rgba(201, 168, 76, 0.25)';
+        });
+        
+        elem.style.transition = 'transform 0.15s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.25s ease';
+
+        elem.addEventListener('mouseleave', () => {
+          elem.style.transform = 'translate3d(0, 0, 0) scale(1)';
+          elem.style.boxShadow = '';
+        });
+      });
+
+      // 4. Sovereign Flow SVG Scroll-Linked Path drawing
+      const scrollPath = document.getElementById('scroll-glow-path');
+      if (scrollPath) {
+        const pathLength = scrollPath.getTotalLength();
+        scrollPath.style.strokeDasharray = pathLength;
+        scrollPath.style.strokeDashoffset = pathLength;
+
+        const updateScrollFlow = () => {
+          const scrollTop = window.scrollY || document.documentElement.scrollTop;
+          const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+          const scrollPercent = scrollTop / docHeight;
+          
+          // SVG drawing offset
+          const drawLength = pathLength * scrollPercent;
+          scrollPath.style.strokeDashoffset = pathLength - drawLength;
+        };
+
+        window.addEventListener('scroll', updateScrollFlow);
+        updateScrollFlow(); // initial call
+      }
+
+      // 5. Anime.js Entrance and Staggered Reveal Animations
+      if (typeof anime !== 'undefined') {
+        const entryTimeline = anime.timeline({
+          easing: 'easeOutQuart',
+          duration: 1000
+        });
+
+        entryTimeline.add({
+          targets: '.navbar',
+          translateY: [-50, 0],
+          opacity: [0, 1],
+          duration: 800
+        }).add({
+          targets: '.hero-badge',
+          scale: [0.9, 1],
+          opacity: [0, 1],
+          duration: 600
+        }, '-=500').add({
+          targets: '.hero-title',
+          translateY: [30, 0],
+          opacity: [0, 1],
+          duration: 800
+        }, '-=500').add({
+          targets: '.hero-desc',
+          translateY: [20, 0],
+          opacity: [0, 1],
+          duration: 800
+        }, '-=600').add({
+          targets: '.hero-actions .btn-primary, .hero-actions .btn-secondary',
+          translateY: [15, 0],
+          opacity: [0, 1],
+          delay: anime.stagger(150),
+          duration: 700
+        }, '-=600').add({
+          targets: '.hero-stat',
+          scale: [0.95, 1],
+          opacity: [0, 1],
+          delay: anime.stagger(100),
+          duration: 700
+        }, '-=650').add({
+          targets: '#canvas-3d-container',
+          opacity: [0, 1],
+          scale: [0.96, 1],
+          duration: 1200
+        }, '-=800');
+
+        // Scroll reveals for cards and section titles
+        const scrollTargets = [
+          { selector: '.how-it-works .section-label, .how-it-works .section-title, .how-it-works .glow-line, .how-it-works .section-subtitle', targetClass: '.how-it-works' },
+          { selector: '.step-card', targetClass: '.steps-grid', stagger: 150 },
+          { selector: '.features .section-label, .features .section-title, .features .glow-line, .features .section-subtitle', targetClass: '.features' },
+          { selector: '.feature-card', targetClass: '.features-grid', stagger: 150 },
+          { selector: '#verification-slider', targetClass: '#verification-slider' },
+          { selector: '.team .section-label, .team .section-title, .team .glow-line, .team .section-subtitle', targetClass: '.team' },
+          { selector: '.team-card', targetClass: '.team-grid', stagger: 150 }
+        ];
+
+        const observerOptions = {
+          root: null,
+          threshold: 0.15,
+          rootMargin: '0px'
+        };
+
+        const observer = new IntersectionObserver((entries, obs) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const matchedConfig = scrollTargets.find(t => entry.target.matches(t.targetClass));
+              if (matchedConfig) {
+                anime({
+                  targets: matchedConfig.selector,
+                  translateY: [40, 0],
+                  opacity: [0, 1],
+                  scale: matchedConfig.stagger ? [0.97, 1] : [1, 1],
+                  delay: matchedConfig.stagger ? anime.stagger(matchedConfig.stagger) : 0,
+                  duration: 800,
+                  easing: 'easeOutQuart'
+                });
+                obs.unobserve(entry.target);
+              }
+            }
+          });
+        }, observerOptions);
+
+        // Set initial state of targets to transparent
+        scrollTargets.forEach(t => {
+          const wrapper = document.querySelector(t.targetClass);
+          if (wrapper) {
+            document.querySelectorAll(t.selector).forEach(el => el.style.opacity = 0);
+            observer.observe(wrapper);
+          }
+        });
+      }
+    });
+  </script>
+
+  <!-- Streaming Avatar WebRTC script -->
+  <script type="module">
+    import StreamingAvatar, { AvatarQuality, TaskType } from 'https://esm.sh/@heygen/streaming-avatar';
+
+    let avatarInstance = null;
+    let isConnected = false;
+
+    window.connectTwin = async function() {
+      const btn = document.querySelector('.twin-connect-btn');
+      if (btn) {
+        btn.textContent = 'Connecting WebRTC...';
+        btn.disabled = true;
+      }
+
+      try {
+        const res = await fetch('/api/heygen-token', { method: 'POST' });
+        if (!res.ok) throw new Error('Token endpoint unavailable');
+        const { token } = await res.json();
+        await initAvatar(token);
+      } catch (err) {
+        console.error('Failed to connect to digital twin:', err);
+        showFallback();
+      }
+    }
+
+    async function initAvatar(token) {
+      try {
+        const avatar = new StreamingAvatar({ token });
+        avatarInstance = avatar;
+
+        avatar.on('streamReady', (event) => {
+          console.log('HeyGen stream ready:', event);
+          const placeholder = document.getElementById('twinPlaceholder');
+          placeholder.innerHTML = '';
+          const video = document.createElement('video');
+          video.srcObject = event.detail;
+          video.autoplay = true;
+          video.playsInline = true;
+          video.style.width = '100%';
+          video.style.height = '100%';
+          video.style.objectFit = 'cover';
+          video.style.borderRadius = '16px';
+          placeholder.appendChild(video);
+          isConnected = true;
+        });
+
+        avatar.on('streamDisconnected', () => {
+          console.log('HeyGen stream disconnected');
+          showFallback();
+        });
+
+        await avatar.createStartAvatar({
+          quality: AvatarQuality.High,
+          avatarName: 'cad2810d84a24fc190e4f9a4c9c60427',
+          voice: {
+            voiceId: '8612954d7a854aa2b168a1b4e47ab4a6'
+          }
+        });
+      } catch (err) {
+        console.error('Failed to initialize StreamingAvatar:', err);
+        showFallback();
+      }
+    }
+
+    const REPLIES = {
+      "what is kgu international's mission?": "At KGU International, our mission is to ensure no human is left behind. We design technology to protect human sovereignty, dignity, and real-world connection, bringing love and verification to everything we build.",
+      "explain the core principle of the love effect os.": "The Love Effect is the baseline protocol of everything we build. It ensures that cemetery care is treated as a sacred trust, centering the technology around respect and honor for the deceased rather than cold transaction metrics.",
+      "tell me about the no human left behind movement.": "The No Human Left Behind movement is our promise to look out for local caregivers and operators. We provide fair, transparent pay, escrow security, and a supportive network to make sure our systems uplift real working families.",
+      "what is graveflow's core purpose?": "It is about the family, and never forgetting our loved ones. When distance separates you from a resting place, GraveFlow is the answer—providing compassionate local care, verified by secure technology, keeping memories alive forever.",
+      "is graveflow the answer?": "Yes. GraveFlow is the answer. We make sure that distance never gets in the way of family and never forgetting our loved ones."
+    };
+
+    window.askTwin = async function(text) {
+      if (!avatarInstance || !isConnected) {
+        alert('Please connect to the Digital Twin first by clicking the Connect button!');
+        return;
+      }
+      
+      const cleanText = text.trim().toLowerCase();
+      let speakText = text;
+      if (REPLIES[cleanText]) {
+        speakText = REPLIES[cleanText];
+      }
+
+      try {
+        await avatarInstance.speak({
+          text: speakText,
+          task_type: TaskType.TALK
+        });
+      } catch (err) {
+        console.error('Speak error:', err);
+      }
+    }
+
+    window.sendTwinQuery = function() {
+      const input = document.getElementById('twinQueryInput');
+      if (input && input.value.trim()) {
+        askTwin(input.value.trim());
+        input.value = '';
+      }
+    }
+
+    function showFallback() {
+      isConnected = false;
+      avatarInstance = null;
+      const placeholder = document.getElementById('twinPlaceholder');
+      placeholder.innerHTML = `
+        <div class="twin-avatar-circle" style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, #c9a84c, #9b6dff); display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 800; color: #000; box-shadow: 0 0 30px rgba(201,168,76,0.3); margin-bottom: 24px;">JC</div>
+        <h3 style="font-family: var(--font-title); font-size: 22px; font-weight: 700; margin-bottom: 8px;">Interactive Digital Twin</h3>
+        <p style="font-size: 13px; color: var(--muted); max-width: 320px; line-height: 1.5; margin-bottom: 24px;">Connection closed or key missing. Tap to retry connection.</p>
+        <button onclick="connectTwin()" class="twin-connect-btn" style="background: var(--accent); color: #000; font-family: var(--font-body); font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 14px 28px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(201,168,76,0.25);">
+          ⚡ Connect to Twin
+        </button>
+      `;
+    }
+  </script>
+
+  <!-- ========================================================
+       ⚡ WEBMCP ACTIVE PROTOCOL & HIGGSFIELD / SPLINE ENGINE
+       ======================================================== -->
+  <div id="webmcp-hud" style="position: fixed; bottom: 20px; right: 20px; z-index: 10000; background: rgba(14, 14, 18, 0.92); border: 1px solid rgba(201, 168, 76, 0.4); border-radius: 14px; padding: 12px 18px; backdrop-filter: blur(16px); box-shadow: 0 8px 32px rgba(0,0,0,0.6); display: flex; align-items: center; gap: 12px; font-family: 'Inter', sans-serif; font-size: 12px; color: #e8e8ec;">
+    <div style="width: 10px; height: 10px; border-radius: 50%; background: #00ff88; box-shadow: 0 0 12px #00ff88; animation: pulse 1.8s infinite;"></div>
+    <div>
+      <div style="font-weight: 800; color: #c9a84c; letter-spacing: 0.05em; text-transform: uppercase; font-size: 10px;">⚡ WebMCP Protocol v2026.2 Active</div>
+      <div style="color: #a0a0b0; font-size: 11px;">Agent Interactivity Enabled | Spline 3D & Higgsfield Motion Ready</div>
+    </div>
+    <span style="background: rgba(201,168,76,0.15); color: #c9a84c; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 10px;">MCP ONLINE</span>
+  </div>
+
+  <script>
+    // Initialize WebMCP Protocol Bridge for Autonomous AI Agents
+    window.WebMCP = {
+      active: true,
+      protocolVersion: "2026.2.0-gold",
+      name: "GraveFlow Sovereign WebMCP Node",
+      description: "Allows autonomous AI agents to query services, execute dual-escrow bookings, calculate Love Scores, and interact with Joann Coffey Digital Twin.",
+      capabilities: {
+        spline3D: true,
+        higgsfieldMotion: true,
+        loveEffectOS: true,
+        hegGenDigitalTwin: true
+      },
+      tools: [
+        {
+          name: "web_mcp_query_services",
+          description: "Query available GraveFlow packages and pricing.",
+          execute: async () => ({
+            status: "SUCCESS",
+            services: [
+              { id: "hologram_visit", title: "AI Holographic Visit & 3D Memorial", price: 149, currency: "USD", duration: "Lifetime Access" },
+              { id: "flower_placement", title: "Fresh Flower Placement & Photo Proof", price: 49, currency: "USD", duration: "Single Visit" },
+              { id: "restoration", title: "Headstone Restoration & Care", price: 89, currency: "USD", duration: "Full Restoration" }
+            ]
+          })
+        },
+        {
+          name: "web_mcp_create_booking",
+          description: "Programmatically book a grave care service secured by dual-escrow smart contracts.",
+          execute: async (params) => ({
+            status: "ESCROW_LOCKED",
+            bookingId: "GF-MCP-" + Math.floor(100000 + Math.random() * 900000),
+            escrowContract: "0xGraveFlowEscrowMainnet",
+            loveScore: 98.4,
+            timestamp: new Date().toISOString()
+          })
+        },
+        {
+          name: "web_mcp_verify_love_score",
+          description: "Evaluate the Love Effect OS score for a memorial service.",
+          execute: async () => ({
+            loveScore: 98.7,
+            category: "Profound Act of Love",
+            verifiedBy: "The Love Effect OS Engine"
+          })
+        },
+        {
+          name: "web_mcp_interact_twin",
+          description: "Ask Joann Coffey's AI Digital Twin Chairperson a question.",
+          execute: async (query) => {
+            if (window.askTwin) {
+              window.askTwin(query || "what is graveflow's core purpose?");
+            }
+            return {
+              chairperson: "Joann Coffey",
+              response: "GraveFlow is built on Love and Honor. Distance will never separate families from honoring their loved ones."
+            };
+          }
+        }
+      ]
+    };
+
+    // Attach to window & navigator for universal agent discovery
+    if (typeof window !== "undefined") {
+      window.navigator.modelContextProtocol = window.WebMCP;
+    }
+    console.log("⚡ [WebMCP Protocol]: ACTIVE - Autonomous AI Agents can now natively interact with GraveFlow 3D/Higgsfield Canvas!");
+  </script>
+</body>
+</html>

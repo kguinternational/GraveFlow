@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script type="importmap">
+  {
+    "imports": {
+      "livekit-client": "https://cdn.jsdelivr.net/npm/livekit-client@2.11.3/+esm",
+      "protobufjs": "https://cdn.jsdelivr.net/npm/protobufjs@7.5.0/+esm"
+    }
+  }
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GraveFlow — Memorial Services</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    /* ─── Reset & Base ─────────────────────────────────── */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg:        #08080a;
+      --panel:     rgba(13, 14, 18, 0.6);
+      --panel-alt: rgba(201, 168, 76, 0.05);
+      --accent:    #c9a84c;
+      --accent-dim: rgba(201, 168, 76, 0.2);
+      --text:      #f5f5f7;
+      --muted:     #a0a0b0;
+      --border:    rgba(201, 168, 76, 0.15);
+      --border-glow: rgba(201, 168, 76, 0.45);
+      --radius:    12px;
+      --transition: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+                   'Segoe UI', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* ─── Animated Background ───────────────────────────── */
+    .bg-gradient {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse at 20% 20%, rgba(201,168,76,0.06) 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 80%, rgba(201,168,76,0.04) 0%, transparent 55%),
+        radial-gradient(ellipse at 50% 50%, rgba(18,14,10,0.7) 0%, transparent 70%);
+      animation: bgPulse 12s ease-in-out infinite alternate;
+    }
+
+    @keyframes bgPulse {
+      0%   { opacity: 0.7; filter: hue-rotate(0deg); }
+      50%  { opacity: 1.0; filter: hue-rotate(8deg); }
+      100% { opacity: 0.8; filter: hue-rotate(-5deg); }
+    }
+
+    /* Floating particles via pseudo-elements + multiple box-shadows */
+    .particles {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0;
+      animation: floatUp linear infinite;
+    }
+
+    /* Generate varied particles via nth-child */
+    .particle:nth-child(1)  { left: 10%; animation-duration: 18s; animation-delay: 0s;   width: 2px; height: 2px; }
+    .particle:nth-child(2)  { left: 20%; animation-duration: 22s; animation-delay: 3s;   width: 1px; height: 1px; opacity: 0; }
+    .particle:nth-child(3)  { left: 35%; animation-duration: 16s; animation-delay: 1.5s; width: 3px; height: 3px; }
+    .particle:nth-child(4)  { left: 50%; animation-duration: 25s; animation-delay: 5s;   width: 1px; height: 1px; }
+    .particle:nth-child(5)  { left: 65%; animation-duration: 20s; animation-delay: 2s;   width: 2px; height: 2px; }
+    .particle:nth-child(6)  { left: 78%; animation-duration: 14s; animation-delay: 4s;   width: 2px; height: 2px; }
+    .particle:nth-child(7)  { left: 88%; animation-duration: 28s; animation-delay: 0.5s; width: 1px; height: 1px; }
+    .particle:nth-child(8)  { left: 45%; animation-duration: 19s; animation-delay: 7s;   width: 3px; height: 3px; }
+    .particle:nth-child(9)  { left: 5%;  animation-duration: 24s; animation-delay: 9s;   width: 1px; height: 1px; }
+    .particle:nth-child(10) { left: 92%; animation-duration: 21s; animation-delay: 6s;   width: 2px; height: 2px; }
+    .particle:nth-child(11) { left: 58%; animation-duration: 17s; animation-delay: 11s;  width: 1px; height: 1px; }
+    .particle:nth-child(12) { left: 30%; animation-duration: 23s; animation-delay: 8s;   width: 2px; height: 2px; }
+
+    @keyframes floatUp {
+      0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+      10%  { opacity: 0.5; }
+      90%  { opacity: 0.3; }
+      100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+    }
+
+    /* ─── Layout ────────────────────────────────────────── */
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 48px 24px 36px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1020px;
+    }
+
+    /* ─── Header ────────────────────────────────────────── */
+    .hero {
+      text-align: center;
+      margin-bottom: 64px;
+      animation: fadeSlideDown 0.8s ease both;
+    }
+
+    @keyframes fadeSlideDown {
+      from { opacity: 0; transform: translateY(-28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo {
+      font-family: 'Playfair Display', Georgia, Garamond, serif;
+      font-size: clamp(2.8rem, 7.5vw, 4.5rem);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text);
+      line-height: 1.1;
+      animation: logoPulse 4s ease-in-out infinite;
+    }
+
+    .logo .emblem-emoji {
+      display: inline-block;
+      animation: emblem-float 3.5s ease-in-out infinite;
+      transform-origin: center bottom;
+      filter: drop-shadow(0 0 12px rgba(201, 168, 76, 0.35));
+    }
+
+    @keyframes emblem-float {
+      0%, 100% { transform: translateY(0px) rotate(-2deg); }
+      50%       { transform: translateY(-8px) rotate(2deg); }
+    }
+
+    @keyframes logoPulse {
+      0%, 100% { text-shadow: 0 0 30px rgba(201,168,76,0.15); }
+      50%       { text-shadow: 0 0 55px rgba(201,168,76,0.35), 0 0 90px rgba(201,168,76,0.10); }
+    }
+
+    .logo .brand-name {
+      color: var(--accent);
+    }
+
+    .tagline {
+      margin-top: 18px;
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      color: var(--muted);
+      font-weight: 400;
+      letter-spacing: 0.5px;
+    }
+
+    .hero-divider {
+      margin: 28px auto 0;
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      border-radius: 2px;
+    }
+
+    /* ─── Cards Grid ────────────────────────────────────── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+      width: 100%;
+    }
+
+    /* ─── Single Card ───────────────────────────────────── */
+    .card {
+      background: var(--panel);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 44px 32px 36px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      transition:
+        transform var(--transition),
+        border-color var(--transition),
+        box-shadow var(--transition),
+        background var(--transition);
+
+      /* Staggered entrance animation */
+      opacity: 0;
+      animation: cardIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .card:nth-child(1) { animation-delay: 0.2s; }
+    .card:nth-child(2) { animation-delay: 0.35s; }
+    .card:nth-child(3) { animation-delay: 0.5s; }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card:hover,
+    .card:focus-visible {
+      transform: translateY(-8px);
+      background: var(--panel-alt);
+      border-color: rgba(201, 168, 76, 0.45);
+      box-shadow:
+        0 16px 40px rgba(0,0,0,0.5),
+        0 0 25px rgba(201,168,76,0.06);
+      outline: none;
+    }
+
+    .card:active {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(201, 168, 76, 0.12);
+    }
+
+    .card-icon {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      filter: drop-shadow(0 0 12px rgba(201,168,76,0.3));
+      transition: transform var(--transition), filter var(--transition);
+    }
+
+    .card:hover .card-icon {
+      transform: scale(1.12);
+      filter: drop-shadow(0 0 20px rgba(201,168,76,0.55));
+    }
+
+    .card-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+      letter-spacing: -0.2px;
+    }
+
+    .card-desc {
+      font-size: 0.92rem;
+      color: var(--muted);
+      line-height: 1.65;
+      flex: 1;
+      margin-bottom: 28px;
+    }
+
+    /* ─── Button ────────────────────────────────────────── */
+    .btn {
+      display: inline-block;
+      padding: 12px 28px;
+      background: transparent;
+      color: var(--accent);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      border-radius: var(--radius);
+      border: 1px solid rgba(201, 168, 76, 0.35);
+      cursor: pointer;
+      text-decoration: none;
+      transition: var(--transition);
+      pointer-events: none; /* card itself is the link */
+      width: 100%;
+    }
+
+    .card:hover .btn {
+      background: var(--accent);
+      color: #08080a;
+      box-shadow: 0 0 25px rgba(201, 168, 76, 0.35);
+      border-color: var(--accent);
+    }
+
+    /* ─── Footer ────────────────────────────────────────── */
+    .footer {
+      margin-top: auto;
+      padding-top: 56px;
+      text-align: center;
+      animation: fadeSlideDown 1s ease 0.9s both;
+    }
+
+    .footer p {
+      font-size: 0.8rem;
+      color: #555566;
+      letter-spacing: 0.3px;
+    }
+
+    .footer p span {
+      color: var(--accent);
+      opacity: 0.6;
+    }
+
+    /* ─── Responsive ────────────────────────────────────── */
+    @media (max-width: 760px) {
+      .cards {
+        grid-template-columns: 1fr;
+        max-width: 440px;
+        margin: 0 auto;
+      }
+
+      .hero {
+        margin-bottom: 48px;
+      }
+
+      .wrapper {
+        padding: 36px 20px 32px;
+      }
+    }
+
+    @media (min-width: 761px) and (max-width: 980px) {
+      .cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+
+      .card {
+        padding: 28px 18px 26px;
+      }
+    }
+
+    /* ─── Accessibility ─────────────────────────────────── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+      .card {
+        opacity: 1 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Animated background layers -->
+  <div class="bg-gradient" aria-hidden="true"></div>
+  <div class="particles" aria-hidden="true">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+
+  <!-- Main content -->
+  <div class="wrapper">
+    <div class="container">
+
+      <!-- User Profile Bar -->
+      <div id="user-profile-bar" style="display: none; align-items: center; justify-content: flex-end; gap: 15px; margin-bottom: 24px; font-size: 0.9rem; border: 1px solid var(--border); padding: 10px 20px; border-radius: var(--radius); background: var(--panel); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+        <span style="color: var(--muted);">Signed in as:</span>
+        <span style="color: var(--accent); font-weight: 700;" id="user-display-name">—</span>
+        <span style="color: var(--muted); font-size: 0.8rem; background: rgba(201, 168, 76, 0.15); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(201, 168, 76, 0.3);" id="user-display-role">—</span>
+        <span style="opacity: 0.3;">|</span>
+        <button onclick="doLogout()" style="background: none; border: none; color: var(--accent); font-weight: 600; cursor: pointer; font-size: 0.9rem; text-decoration: underline;">Log Out</button>
+      </div>
+
+      <!-- Hero / Header -->
+      <header class="hero">
+        <h1 class="logo" style="display: flex; align-items: center; justify-content: center;">
+          <img src="assets/logo.png" alt="GraveFlow" style="height: 1.2em; margin-right: 15px; border-radius: 50%;" />
+          <span class="brand-name"> GraveFlow</span>
+        </h1>
+        <p class="tagline">Memorial services, delivered with dignity</p>
+        <div class="hero-divider" aria-hidden="true"></div>
+      </header>
+
+      <!-- Role Selector Cards -->
+      <main>
+        <div class="cards" role="list">
+
+          <!-- Rider Card -->
+          <a class="card" href="client/graveflow-rider.html" role="listitem" aria-label="Enter as Rider — Request service">
+            <div class="card-icon" aria-hidden="true">💐</div>
+            <h2 class="card-title">Request Service</h2>
+            <p class="card-desc">
+              Search for your loved one's memorial and dispatch verified maintenance or flower delivery.
+            </p>
+            <span class="btn">Enter as Rider</span>
+          </a>
+
+          <!-- Driver Card -->
+          <a class="card" href="driver.html" role="listitem" aria-label="Enter as Driver — Perform honors">
+            <div class="card-icon" aria-hidden="true">🚗</div>
+            <h2 class="card-title">Perform Honors</h2>
+            <p class="card-desc">
+              Accept and fulfill memorial service honors. Earn by visiting cemeteries
+              and submitting verified proof of service.
+            </p>
+            <span class="btn">Enter as Driver</span>
+          </a>
+
+          <!-- Admin Card -->
+          <a class="card" href="admin.html" role="listitem" aria-label="Enter Admin — Operations dashboard">
+            <div class="card-icon" aria-hidden="true">📊</div>
+            <h2 class="card-title">Operations Dashboard</h2>
+            <p class="card-desc">
+              Monitor real-time honor dispatch, driver performance, payment ledger,
+              and anomaly detection.
+            </p>
+            <span class="btn">Enter Admin</span>
+          </a>
+
+          <!-- Media Studio Card -->
+          <a class="card" href="media-studio.html" role="listitem" aria-label="Enter Media Studio — Generative remembrance media">
+            <div class="card-icon" aria-hidden="true">🎬</div>
+            <h2 class="card-title">Remembrance Studio</h2>
+            <p class="card-desc">
+              Generate AI memorial tribute videos, remembrance images, and custom face swaps
+              under CCO Aiden Drake's creative direction.
+            </p>
+            <span class="btn">Enter Studio</span>
+          </a>
+
+        </div>
+      </main>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>GraveFlow <span>©</span> 2024 — Dignified service delivery</p>
+    </footer>
+  </div>
+
+  <!-- Floating Joann Coffey Digital Twin Assistant -->
+  <script type="module" src="twin_assistant.js"></script>
+
+  <script>
+    // User profile status check
+    (function checkUserStatus() {
+      const token = localStorage.getItem('gf_token');
+      const userStr = localStorage.getItem('gf_user');
+      if (token && userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          document.getElementById('user-profile-bar').style.display = 'flex';
+          document.getElementById('user-display-name').textContent = user.name || user.email;
+          document.getElementById('user-display-role').textContent = user.role.toUpperCase();
+        } catch (e) {
+          console.error('Failed to parse user state', e);
+        }
+      }
+    })();
+
+    function doLogout() {
+      localStorage.removeItem('gf_token');
+      localStorage.removeItem('gf_user');
+      localStorage.removeItem('gf_rider_token');
+      localStorage.removeItem('graveflow_driver_id');
+      window.location.reload();
+    }
+
+    // Minimal JS: make the entire card clickable (already handled via <a> wrapping)
+    // Keyboard accessibility: ensure Enter/Space on card navigates
+    document.querySelectorAll('.card').forEach(function(card) {
+      card.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          card.click();
+        }
+      });
+
+      // Add tabindex so cards are focusable
+      if (!card.hasAttribute('tabindex')) {
+        card.setAttribute('tabindex', '0');
+      }
+    });
+  </script>
+
+  <!-- ⚡ WebMCP Active Protocol Bridge -->
+  <div id="webmcp-hud" style="position: fixed; bottom: 20px; right: 20px; z-index: 10000; background: rgba(14, 14, 18, 0.92); border: 1px solid rgba(201, 168, 76, 0.4); border-radius: 14px; padding: 12px 18px; backdrop-filter: blur(16px); box-shadow: 0 8px 32px rgba(0,0,0,0.6); display: flex; align-items: center; gap: 12px; font-family: 'Inter', sans-serif; font-size: 12px; color: #e8e8ec;">
+    <div style="width: 10px; height: 10px; border-radius: 50%; background: #00ff88; box-shadow: 0 0 12px #00ff88; animation: pulse 1.8s infinite;"></div>
+    <div>
+      <div style="font-weight: 800; color: #c9a84c; letter-spacing: 0.05em; text-transform: uppercase; font-size: 10px;">⚡ WebMCP Protocol v2026.2 Active</div>
+      <div style="color: #a0a0b0; font-size: 11px;">Agent Interactivity Enabled | Spline 3D & Higgsfield Ready</div>
+    </div>
+    <span style="background: rgba(201,168,76,0.15); color: #c9a84c; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 10px;">MCP ONLINE</span>
+  </div>
+
+  <script>
+    window.WebMCP = window.WebMCP || {
+      active: true,
+      protocolVersion: "2026.2.0-gold",
+      name: "GraveFlow Sovereign WebMCP Node",
+      capabilities: { spline3D: true, higgsfieldMotion: true, loveEffectOS: true, hegGenDigitalTwin: true }
+    };
+    if (typeof window !== "undefined") {
+      window.navigator.modelContextProtocol = window.WebMCP;
+    }
+  </script>
+</body>
+</html>

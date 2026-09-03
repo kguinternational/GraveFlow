@@ -1,0 +1,33 @@
+{
+  "name": "graveflow",
+  "version": "1.0.0",
+  "description": "AI-Powered Cemetery Care Platform",
+  "main": "main.js",
+  "author": "GraveFlow",
+  "license": "MIT",
+  "dependencies": {
+    "@pinata/sdk": "^2.1.0",
+    "@prisma/client": "^5.18.0",
+    "@unstoppabledomains/resolution": "^9.3.3",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "ethers": "^6.17.0",
+    "express": "^4.18.2",
+    "express-rate-limit": "^8.5.2",
+    "form-data": "^4.0.5",
+    "helmet": "^8.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "localtunnel": "^2.0.2",
+    "morgan": "^1.11.0",
+    "node-fetch": "^3.3.2",
+    "nodemailer": "^8.0.10",
+    "nostr-tools": "^2.24.1",
+    "prisma": "^5.18.0",
+    "socket.io": "^4.7.2",
+    "socket.io-client": "^4.8.3",
+    "stripe": "^12.14.0",
+    "twilio": "^6.0.2",
+    "web-push": "^3.6.7"
+  }
+}

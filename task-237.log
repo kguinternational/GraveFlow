@@ -1,0 +1,16 @@
+Created At: 2026-07-14T00:10:40Z
+Completed At: 2026-07-14T00:10:40Z
+{
+  "success": false,
+  "error": "Operation 1 (add): the character limit of 200 characters would be exceeded. No operation was performed.",
+  "remaining_budget": 3,
+  "current_entries": [
+    {
+      "id": "user:tracking_method",
+      "status": "completed",
+      "content": "The project originally used a notebook file for tracking efforts."
+    }
+  ],
+  "usage": "0/2,200"
+}
+

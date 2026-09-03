@@ -1,0 +1,14 @@
+activepieces/
+node_modules/
+Mike Lui/
+contracts/node_modules/
+node_modules/
+contracts/node_modules/
+mobile/node_modules/
+dataset/
+logs/
+.env
+.env*
+**/node_modules/
+dataset/
+logs/

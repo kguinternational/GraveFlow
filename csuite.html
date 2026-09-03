@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GraveFlow — C-Suite Intelligence Hub</title>
+  <script>
+    window.REQUIRED_ROLES = ['csuite'];
+  </script>
+  <script src="auth_guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #08080a;
+      --panel:      #0f0f14;
+      --panel2:     #16161e;
+      --border:     #222230;
+      --accent:     #c9a84c;
+      --accent2:    #9b6dff;
+      --text:       #e8e8f0;
+      --muted:      #666680;
+      --success:    #4caf50;
+      --danger:     #f44336;
+      --radius:     10px;
+      --font:       'Inter', system-ui, sans-serif;
+    }
+
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); }
+
+    /* ── Header ── */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 32px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-icon { font-size: 28px; }
+    .logo-text { font-size: 18px; font-weight: 700; color: var(--accent); letter-spacing: -0.3px; }
+    .logo-sub  { font-size: 11px; color: var(--muted); font-weight: 400; letter-spacing: 1px; text-transform: uppercase; }
+    .header-actions { display: flex; gap: 10px; align-items: center; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 8px var(--success); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+    .status-label { font-size: 12px; color: var(--muted); }
+
+    /* ── Layout ── */
+    main { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 65px); }
+
+    /* ── Sidebar ── */
+    aside {
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      display: flex; flex-direction: column; gap: 4px;
+      position: sticky; top: 65px; height: calc(100vh - 65px); overflow-y: auto;
+    }
+    .sidebar-section { padding: 8px 20px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); }
+    .exec-btn {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; cursor: pointer; border: none; background: transparent;
+      color: var(--text); font-family: var(--font); font-size: 14px;
+      text-align: left; width: 100%; transition: background 0.15s;
+      border-left: 3px solid transparent;
+    }
+    .exec-btn:hover { background: var(--panel2); }
+    .exec-btn.active { background: var(--panel2); border-left-color: var(--accent); }
+    .exec-emoji { font-size: 20px; width: 28px; text-align: center; }
+    .exec-info .exec-name { font-weight: 600; font-size: 13px; }
+    .exec-info .exec-title { font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .board-btn {
+      margin: 16px 20px 0;
+      padding: 10px 16px;
+      background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(155,109,255,0.15));
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      color: var(--accent);
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; text-align: center;
+      transition: all 0.2s;
+    }
+    .board-btn:hover { background: rgba(201,168,76,0.25); }
+    .report-btn {
+      margin: 8px 20px 0;
+      padding: 10px 16px;
+      background: rgba(155,109,255,0.1);
+      border: 1px solid var(--accent2);
+      border-radius: var(--radius);
+      color: var(--accent2);
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; text-align: center;
+      transition: all 0.2s;
+    }
+    .report-btn:hover { background: rgba(155,109,255,0.2); }
+
+    /* ── Content ── */
+    .content { padding: 32px; display: flex; flex-direction: column; gap: 24px; overflow-y: auto; max-height: calc(100vh - 65px); }
+
+    /* ── Executive Card ── */
+    .exec-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+    .exec-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+    .exec-avatar {
+      width: 56px; height: 56px;
+      background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(155,109,255,0.2));
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+    }
+    .exec-header-info .exec-fullname { font-size: 20px; font-weight: 700; }
+    .exec-header-info .exec-role-title { font-size: 13px; color: var(--accent); margin-top: 2px; }
+    .exec-header-info .exec-domain { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Chat ── */
+    .chat-box {
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      min-height: 280px; max-height: 420px;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .msg { display: flex; gap: 10px; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none} }
+    .msg.user { flex-direction: row-reverse; }
+    .msg-bubble {
+      max-width: 75%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 14px; line-height: 1.5;
+    }
+    .msg.user .msg-bubble { background: rgba(201,168,76,0.15); border: 1px solid rgba(201,168,76,0.3); color: var(--text); border-radius: 12px 12px 2px 12px; }
+    .msg.exec .msg-bubble { background: var(--panel); border: 1px solid var(--border); border-radius: 12px 12px 12px 2px; }
+    .msg-avatar { font-size: 18px; flex-shrink: 0; margin-top: 4px; }
+    .msg-meta { font-size: 11px; color: var(--muted); margin-top: 4px; text-align: right; }
+    .msg.exec .msg-meta { text-align: left; }
+
+    .chat-input-row { display: flex; gap: 10px; margin-top: 12px; }
+    .chat-input {
+      flex: 1;
+      background: var(--panel2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 10px 14px;
+      color: var(--text); font-family: var(--font); font-size: 14px;
+      outline: none; transition: border-color 0.2s;
+    }
+    .chat-input:focus { border-color: var(--accent); }
+    .send-btn {
+      padding: 10px 20px;
+      background: var(--accent); color: #000;
+      border: none; border-radius: var(--radius);
+      font-weight: 700; font-size: 14px; cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .send-btn:hover { opacity: 0.85; }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Ledger toggle ── */
+    .ledger-toggle { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+    .toggle-label { font-size: 12px; color: var(--muted); }
+    input[type=checkbox] { accent-color: var(--accent); }
+
+    /* ── Board Briefing ── */
+    .briefing-section { display: flex; flex-direction: column; gap: 16px; }
+    .briefing-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex; gap: 16px;
+      animation: fadeIn 0.4s ease;
+    }
+    .briefing-avatar { font-size: 24px; flex-shrink: 0; }
+    .briefing-meta .bname { font-weight: 600; font-size: 14px; }
+    .briefing-meta .btitle { font-size: 11px; color: var(--accent); margin-bottom: 8px; }
+    .briefing-meta .breply { font-size: 14px; line-height: 1.6; color: var(--text); }
+
+    /* ── Loading ── */
+    .thinking {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--muted);
+      padding: 10px 14px;
+    }
+    .dots span { animation: blink 1.4s infinite; }
+    .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink { 0%,80%,100%{opacity:0}40%{opacity:1} }
+
+    /* ── Empty state ── */
+    .empty {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 200px; color: var(--muted); font-size: 14px; gap: 8px;
+    }
+    .empty .empty-icon { font-size: 40px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      main { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; display: flex; flex-direction: row; flex-wrap: wrap; padding: 12px; overflow-x: auto; }
+      .exec-btn { width: auto; border-left: none; border-bottom: 3px solid transparent; padding: 8px 12px; }
+      .exec-btn.active { border-bottom-color: var(--accent); border-left: none; }
+      .board-btn, .report-btn { margin: 4px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🪦</div>
+    <div>
+      <div class="logo-text">GraveFlow</div>
+      <div class="logo-sub">C-Suite Intelligence Hub</div>
+    </div>
+  </div>
+  <div class="header-actions" style="display: flex; align-items: center; gap: 15px;">
+    <div class="status-dot"></div>
+    <span class="status-label">AI Executives Online</span>
+    <span style="color: var(--muted);">|</span>
+    <span style="color: var(--accent); font-weight: 600; font-size: 0.9rem;">Board: <span id="csuite-user-name" style="color: var(--text);">—</span></span>
+    <button onclick="doLogout()" style="background: none; border: 1px solid var(--border); color: var(--accent); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer;">Log Out</button>
+  </div>
+</header>
+
+<main>
+  <aside>
+    <div class="sidebar-section">Executive Team</div>
+    <button class="exec-btn" data-role="CHAIR">
+      <div class="exec-emoji">👑</div>
+      <div class="exec-info">
+        <div class="exec-name">Joann Coffey</div>
+        <div class="exec-title">Founder & Chairperson</div>
+      </div>
+    </button>
+    <button class="exec-btn active" data-role="CEO">
+      <div class="exec-emoji">👑</div>
+      <div class="exec-info">
+        <div class="exec-name">Aria Stone</div>
+        <div class="exec-title">Chief Executive Officer</div>
+      </div>
+    </button>
+    <button class="exec-btn" data-role="CFO">
+      <div class="exec-emoji">💼</div>
+      <div class="exec-info">
+        <div class="exec-name">Marcus Venn</div>
+        <div class="exec-title">Chief Financial Officer</div>
+      </div>
+    </button>
+    <button class="exec-btn" data-role="COO">
+      <div class="exec-emoji">⚙️</div>
+      <div class="exec-info">
+        <div class="exec-name">Devika Rao</div>
+        <div class="exec-title">Chief Operating Officer</div>
+      </div>
+    </button>
+    <button class="exec-btn" data-role="CTO">
+      <div class="exec-emoji">🧠</div>
+      <div class="exec-info">
+        <div class="exec-name">Jin Park</div>
+        <div class="exec-title">Chief Technology Officer</div>
+      </div>
+    </button>
+    <button class="exec-btn" data-role="CMO">
+      <div class="exec-emoji">📣</div>
+      <div class="exec-info">
+        <div class="exec-name">Soleil Carter</div>
+        <div class="exec-title">Chief Marketing Officer</div>
+      </div>
+    </button>
+    <button class="exec-btn" data-role="CHRO">
+      <div class="exec-emoji">🤝</div>
+      <div class="exec-info">
+        <div class="exec-name">Tobias Marsh</div>
+        <div class="exec-title">Chief HR Officer</div>
+      </div>
+    </button>
+    <div class="sidebar-section" style="margin-top:16px;">Board Actions</div>
+    <button class="board-btn" onclick="openBoardBriefing()">📋 Board Briefing</button>
+    <button class="report-btn" onclick="getStatusReport()">📊 Status Report</button>
+  </aside>
+
+  <div class="content" id="content">
+    <!-- Populated by JS -->
+  </div>
+</main>
+
+<script>
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+  ? 'http://localhost:8003'
+  : window.location.origin + '/csuite-api';
+let currentRole = 'CEO';
+let executives = {};
+
+const executives_static = {
+  CHAIR: { name:'Joann Coffey', title:'Founder & Chairperson, KGU International', emoji:'👑', domain:'Parent Entity Oversight, The Love Effect Alignment, Sovereign Tech Architecture' },
+  CEO:  { name:'Aria Stone',   title:'Chief Executive Officer',  emoji:'👑', domain:'Strategy, Vision, Company Direction' },
+  CFO:  { name:'Marcus Venn',  title:'Chief Financial Officer',  emoji:'💼', domain:'Revenue, Payouts, Escrow, Financial Health' },
+  COO:  { name:'Devika Rao',   title:'Chief Operating Officer',  emoji:'⚙️', domain:'Gig Dispatch, Driver Operations, Service Quality' },
+  CTO:  { name:'Jin Park',     title:'Chief Technology Officer', emoji:'🧠', domain:'AI Systems, Infrastructure, The Love Effect OS, Open Source Stack' },
+  CMO:  { name:'Soleil Carter',title:'Chief Marketing Officer',  emoji:'📣', domain:'Brand, Customer Acquisition, Driver Recruitment, Messaging' },
+  CHRO: { name:'Tobias Marsh', title:'Chief Human Resources Officer', emoji:'🤝', domain:'Driver Welfare, Onboarding, Compliance, Culture' }
+};
+
+const chatHistories = {};
+
+function switchExec(role) {
+  currentRole = role;
+  document.querySelectorAll('.exec-btn').forEach(b => b.classList.toggle('active', b.dataset.role === role));
+  renderChat(role);
+}
+
+function renderChat(role) {
+  const exec = executives_static[role];
+  const history = chatHistories[role] || [];
+  const content = document.getElementById('content');
+
+  content.innerHTML = `
+    <div class="exec-card">
+      <div class="exec-header">
+        <div class="exec-avatar">${exec.emoji}</div>
+        <div class="exec-header-info">
+          <div class="exec-fullname">${exec.name}</div>
+          <div class="exec-role-title">${exec.title}</div>
+          <div class="exec-domain">${exec.domain}</div>
+        </div>
+      </div>
+
+      <div class="chat-box" id="chatbox">
+        ${history.length === 0 ? `
+          <div class="empty">
+            <div class="empty-icon">${exec.emoji}</div>
+            <div>Ask ${exec.name.split(' ')[0]} anything about GraveFlow</div>
+          </div>
+        ` : history.map(m => renderMsg(m, exec)).join('')}
+      </div>
+
+      <div class="chat-input-row">
+        <input class="chat-input" id="chatInput" type="text"
+          placeholder="Ask ${exec.name.split(' ')[0]}…"
+          onkeydown="if(event.key==='Enter') sendMsg()" />
+        <button class="send-btn" id="sendBtn" onclick="sendMsg()">Send</button>
+      </div>
+      <div class="ledger-toggle">
+        <input type="checkbox" id="ledgerCtx" checked />
+        <label class="toggle-label" for="ledgerCtx">Include live business data</label>
+      </div>
+    </div>
+  `;
+
+  const box = document.getElementById('chatbox');
+  if (box) box.scrollTop = box.scrollHeight;
+}
+
+function renderMsg(m, exec) {
+  if (m.role === 'user') {
+    return `<div class="msg user">
+      <div class="msg-avatar">🧑</div>
+      <div>
+        <div class="msg-bubble">${m.text}</div>
+        <div class="msg-meta">${m.time}</div>
+      </div>
+    </div>`;
+  } else {
+    return `<div class="msg exec">
+      <div class="msg-avatar">${exec.emoji}</div>
+      <div>
+        <div class="msg-bubble">${m.text}</div>
+        <div class="msg-meta">${exec.name.split(' ')[0]} · ${m.time}</div>
+      </div>
+    </div>`;
+  }
+}
+
+async function sendMsg() {
+  const input = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  const includeLedger = document.getElementById('ledgerCtx')?.checked ?? true;
+  const exec = executives_static[currentRole];
+  const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+
+  if (!chatHistories[currentRole]) chatHistories[currentRole] = [];
+  chatHistories[currentRole].push({ role: 'user', text: msg, time });
+  input.value = '';
+  sendBtn.disabled = true;
+
+  // Re-render with thinking indicator
+  renderChat(currentRole);
+  const box = document.getElementById('chatbox');
+  const thinking = document.createElement('div');
+  thinking.className = 'thinking';
+  thinking.innerHTML = `<span>${exec.emoji}</span> ${exec.name.split(' ')[0]} is thinking<span class="dots"><span>.</span><span>.</span><span>.</span></span>`;
+  box.appendChild(thinking);
+  box.scrollTop = box.scrollHeight;
+
+  try {
+    const res = await fetch(`${API}/executive/${currentRole}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, includeLedger })
+    });
+    const data = await res.json();
+    chatHistories[currentRole].push({ role: 'exec', text: data.reply, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) });
+  } catch (e) {
+    chatHistories[currentRole].push({ role: 'exec', text: '⚠️ Could not reach the AI engine. Make sure Ollama is running on port 11434.', time });
+  }
+
+  renderChat(currentRole);
+  document.getElementById('sendBtn').disabled = false;
+}
+
+async function openBoardBriefing() {
+  const topic = prompt('Board Briefing Topic (all executives will respond):');
+  if (!topic) return;
+
+  const content = document.getElementById('content');
+  content.innerHTML = `
+    <div style="padding:24px">
+      <h2 style="font-size:20px;font-weight:700;margin-bottom:4px">📋 Board Briefing</h2>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:24px">"${topic}"</p>
+      <div class="thinking" style="font-size:15px">
+        Convening the board<span class="dots"><span>.</span><span>.</span><span>.</span></span>
+      </div>
+    </div>
+  `;
+
+  try {
+    const res = await fetch(`${API}/board-briefing`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: topic })
+    });
+    const data = await res.json();
+
+    content.innerHTML = `
+      <div style="padding:24px">
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:4px">📋 Board Briefing</h2>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:24px">"${data.topic}"</p>
+        <div class="briefing-section">
+          ${data.briefing.map(b => `
+            <div class="briefing-card">
+              <div class="briefing-avatar">${b.executive.emoji}</div>
+              <div class="briefing-meta">
+                <div class="bname">${b.executive.name}</div>
+                <div class="btitle">${b.executive.title}</div>
+                <div class="breply">${b.reply}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <button onclick="switchExec('${currentRole}')" style="margin-top:20px;padding:10px 20px;background:var(--accent);color:#000;border:none;border-radius:8px;font-weight:600;cursor:pointer;">← Back to Chat</button>
+      </div>
+    `;
+  } catch (e) {
+    content.innerHTML = `<div class="empty"><div>⚠️ Board briefing failed. Is the C-Suite Hub running on port 8003?</div></div>`;
+  }
+}
+
+async function getStatusReport() {
+  const content = document.getElementById('content');
+  content.innerHTML = `
+    <div style="padding:24px">
+      <h2 style="font-size:20px;font-weight:700;margin-bottom:24px">📊 Executive Status Report</h2>
+      <div class="thinking" style="font-size:15px">Generating reports<span class="dots"><span>.</span><span>.</span><span>.</span></span></div>
+    </div>
+  `;
+
+  try {
+    const res = await fetch(`${API}/status-report`);
+    const data = await res.json();
+
+    content.innerHTML = `
+      <div style="padding:24px">
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:4px">📊 Executive Status Report</h2>
+        <p style="color:var(--muted);font-size:12px;margin-bottom:8px">Generated: ${new Date(data.generated_at).toLocaleString()}</p>
+        <div style="background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:20px;font-size:12px;color:var(--muted);font-family:monospace;white-space:pre-wrap">${data.business_data}</div>
+        <div class="briefing-section">
+          ${data.executive_reports.map(r => `
+            <div class="briefing-card">
+              <div class="briefing-avatar">${r.executive.emoji}</div>
+              <div class="briefing-meta">
+                <div class="bname">${r.executive.name}</div>
+                <div class="btitle">${r.executive.title}</div>
+                <div class="breply">${r.status}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <button onclick="switchExec('${currentRole}')" style="margin-top:20px;padding:10px 20px;background:var(--accent);color:#000;border:none;border-radius:8px;font-weight:600;cursor:pointer;">← Back to Chat</button>
+      </div>
+    `;
+  } catch (e) {
+    content.innerHTML = `<div class="empty"><div>⚠️ Status report failed. Is the C-Suite Hub running on port 8003?</div></div>`;
+  }
+}
+
+// Auth Events
+window.addEventListener('auth-ready', (e) => {
+  const user = e.detail;
+  document.getElementById('csuite-user-name').textContent = user.name;
+});
+
+function doLogout() {
+  localStorage.removeItem('gf_token');
+  localStorage.removeItem('gf_user');
+  window.location.reload();
+}
+
+// Init
+document.querySelectorAll('.exec-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchExec(btn.dataset.role));
+});
+
+renderChat('CEO');
+</script>
+</body>
+</html>

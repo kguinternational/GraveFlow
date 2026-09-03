@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GraveFlow — Sovereign AGI Operations Room</title>
+  <meta name="description" content="Real-time visualization of GraveFlow's fully autonomous AI-driven corporate board, powered by local LLMs." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  
+  <style>
+    /* ── Reset & Variables ──────────────────────────────── */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg:          #060608;
+      --panel:       rgba(14, 14, 20, 0.65);
+      --panel-solid: #0e0e14;
+      --panel-light: rgba(255, 255, 255, 0.02);
+      --border:      rgba(201, 168, 76, 0.16);
+      --border-glow: rgba(201, 168, 76, 0.4);
+      --gold:        #c9a84c;
+      --gold-dim:    #8a6e2a;
+      --gold-light:  #e8c96a;
+      --purple:      #a855f7;
+      --cyan:        #06b6d4;
+      --green:       #22c55e;
+      --red:         #ef4444;
+      --blue:        #3b82f6;
+      --magenta:     #ec4899;
+      --text:        #e2e8f0;
+      --text-muted:  #71717a;
+      --radius:      12px;
+      --radius-lg:   20px;
+      --font-body:   'Inter', system-ui, sans-serif;
+      --font-title:  'Outfit', sans-serif;
+      --transition:  0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Ambient Background Glows */
+    .bg-glows {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: 
+        radial-gradient(circle at 10% 20%, rgba(201, 168, 76, 0.04) 0%, transparent 45%),
+        radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.03) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(14, 14, 20, 0.8) 0%, transparent 100%);
+    }
+
+    /* Custom Cursor Follower */
+    @media (pointer: fine) {
+      body { cursor: none; }
+      a, button, select, input, .card, .control-btn, .exec-card { cursor: none !important; }
+      #cursor {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 8px; height: 8px;
+        background-color: var(--gold);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 99999;
+        transform: translate(-50%, -50%);
+        transition: width 0.15s, height 0.15s, background-color 0.15s;
+        mix-blend-mode: difference;
+      }
+      #cursor-ring {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 38px; height: 38px;
+        border: 1.5px solid var(--gold);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 99998;
+        transform: translate(-50%, -50%);
+        transition: width 0.25s cubic-bezier(0.25, 1, 0.5, 1),
+                    height 0.25s cubic-bezier(0.25, 1, 0.5, 1),
+                    border-color 0.25s, background-color 0.25s;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 8px; font-weight: 900; letter-spacing: 0.1em;
+        color: transparent; overflow: hidden;
+      }
+      body.hover-card #cursor { width: 4px; height: 4px; background-color: #ffffff; }
+      body.hover-card #cursor-ring { width: 56px; height: 56px; border-color: #ffffff; background-color: rgba(255,255,255,0.06); }
+      body.hover-speak #cursor { width: 0; height: 0; }
+      body.hover-speak #cursor-ring { width: 80px; height: 80px; border-color: var(--gold); background-color: rgba(201, 168, 76, 0.12); color: var(--text); }
+    }
+
+    /* ── Header ─────────────────────────────────────────── */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 2.5rem;
+      background-color: rgba(14, 14, 20, 0.8);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .brand-logo {
+      font-size: 2rem;
+    }
+
+    .brand-details h1 {
+      font-family: var(--font-title);
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-details span {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      padding: 0.4rem 0.9rem;
+      border-radius: 100px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--green);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--green);
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    /* ── Main Layout ────────────────────────────────────── */
+    main {
+      display: grid;
+      grid-template-columns: 320px 1fr 340px;
+      gap: 1.5rem;
+      padding: 1.5rem;
+      flex-grow: 1;
+      z-index: 10;
+      max-width: 1920px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    @media (max-width: 1200px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ── Panel Styling (Glassmorphism) ──────────────────── */
+    .glass-panel {
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .panel-header {
+      margin-bottom: 1.25rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 0.75rem;
+    }
+
+    .panel-title {
+      font-family: var(--font-title);
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* ── Left Sidebar: C-Suite Roster ───────────────────── */
+    .exec-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      overflow-y: auto;
+    }
+
+    .exec-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.01);
+      transition: var(--transition);
+    }
+
+    .exec-card:hover {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: var(--card-accent);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .exec-card.active {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: var(--card-accent);
+      box-shadow: 0 0 15px var(--card-accent-alpha);
+    }
+
+    .exec-avatar-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 2px solid var(--card-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background: rgba(0, 0, 0, 0.2);
+      flex-shrink: 0;
+      box-shadow: 0 0 10px var(--card-accent-alpha);
+    }
+
+    .exec-info h3 {
+      font-family: var(--font-title);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .exec-info p {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* ── Center: Interactive 3D Canvas & Playback ───────── */
+    .center-column {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .canvas-card {
+      position: relative;
+      height: 380px;
+      width: 100%;
+    }
+
+    #neural-canvas-container {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+
+    .canvas-overlay {
+      position: absolute;
+      top: 1.25rem;
+      left: 1.25rem;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .canvas-topic-badge {
+      background: rgba(8, 8, 12, 0.75);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      max-width: 500px;
+      backdrop-filter: blur(8px);
+    }
+
+    /* Boardroom Debate Log */
+    .debate-card {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      max-height: 520px;
+    }
+
+    .debate-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 8px;
+      padding: 0.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .control-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      width: 32px;
+      height: 32px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .control-btn:hover {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--bg);
+    }
+
+    .cycle-indicator {
+      font-family: var(--font-title);
+      font-size: 0.85rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .cycle-slider {
+      flex-grow: 1;
+      margin: 0 1rem;
+      accent-color: var(--gold);
+      height: 4px;
+      cursor: pointer;
+    }
+
+    .transcript-box {
+      flex-grow: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      padding-right: 0.5rem;
+    }
+
+    .chat-bubble {
+      display: flex;
+      gap: 1rem;
+      max-width: 85%;
+      align-self: flex-start;
+      animation: bubble-fade 0.4s ease-out;
+    }
+
+    @keyframes bubble-fade {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chat-bubble.CEO { --bubble-color: var(--gold); }
+    .chat-bubble.CFO { --bubble-color: var(--green); }
+    .chat-bubble.COO { --bubble-color: var(--cyan); }
+    .chat-bubble.CTO { --bubble-color: var(--blue); }
+    .chat-bubble.CMO { --bubble-color: var(--magenta); }
+    .chat-bubble.CHRO { --bubble-color: var(--purple); }
+
+    .chat-bubble-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1.5px solid var(--bubble-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.3);
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      box-shadow: 0 0 8px rgba(var(--bubble-color), 0.2);
+    }
+
+    .chat-bubble-content {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-left: 3px solid var(--bubble-color);
+      border-radius: 0 10px 10px 10px;
+      padding: 0.75rem 1rem;
+    }
+
+    .chat-bubble-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.25rem;
+    }
+
+    .chat-bubble-sender {
+      font-family: var(--font-title);
+      font-weight: 800;
+      font-size: 0.8rem;
+      color: var(--bubble-color);
+    }
+
+    .chat-bubble-role {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-left: 0.5rem;
+    }
+
+    .chat-bubble-text {
+      font-size: 0.85rem;
+      line-height: 1.45;
+      color: var(--text);
+    }
+
+    /* Decision Box */
+    .decision-alert {
+      background: rgba(201, 168, 76, 0.04);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+
+    .decision-label {
+      font-family: var(--font-title);
+      font-weight: 800;
+      font-size: 0.75rem;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.25rem;
+    }
+
+    .decision-text {
+      font-size: 0.82rem;
+      line-height: 1.4;
+      color: var(--text);
+    }
+
+    /* ── Right Sidebar: Operations & Actions ──────────────── */
+    .right-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.8rem;
+    }
+
+    .metric-card {
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: var(--radius);
+      padding: 1rem;
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    .metric-card:hover {
+      border-color: var(--border);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .metric-val {
+      font-family: var(--font-title);
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--gold);
+      margin-bottom: 0.1rem;
+    }
+
+    .metric-lbl {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    /* Action Log */
+    .actions-box {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      max-height: 380px;
+    }
+
+    .action-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .action-item {
+      display: flex;
+      gap: 0.8rem;
+      padding: 0.6rem;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.01);
+      border-left: 2px solid var(--gold);
+    }
+
+    .action-item.success { border-left-color: var(--green); }
+    .action-item.info { border-left-color: var(--cyan); }
+
+    .action-details h4 {
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .action-details p {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    /* Command Center Terminal Log */
+    .terminal-card {
+      background: #020204;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-family: 'Courier New', Courier, monospace;
+      padding: 1rem;
+      font-size: 0.72rem;
+      color: #38bdf8;
+      height: 180px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      border-radius: var(--radius);
+    }
+
+    .terminal-line span {
+      color: var(--text-muted);
+    }
+
+    .terminal-line.success { color: var(--green); }
+    .terminal-line.warning { color: var(--gold); }
+    .terminal-line.danger { color: var(--red); }
+
+    /* Custom scrollbar adjustments */
+    .transcript-box::-webkit-scrollbar,
+    .exec-list::-webkit-scrollbar,
+    .actions-box::-webkit-scrollbar,
+    .terminal-card::-webkit-scrollbar {
+      width: 4px;
+    }
+    .transcript-box::-webkit-scrollbar-thumb,
+    .exec-list::-webkit-scrollbar-thumb,
+    .actions-box::-webkit-scrollbar-thumb,
+    .terminal-card::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Ambient background glow layers -->
+  <div class="bg-glows" aria-hidden="true"></div>
+
+  <!-- Custom Cursor Follower -->
+  <div id="cursor" aria-hidden="true"></div>
+  <div id="cursor-ring" aria-hidden="true"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <span class="brand-logo" aria-hidden="true">🪦</span>
+      <div class="brand-details">
+        <h1>GraveFlow Sovereign OS</h1>
+        <span>Decentralized AGI Automated Company</span>
+      </div>
+    </div>
+    
+    <div style="display: flex; gap: 1rem; align-items: center;">
+      <a href="landing.html" style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-decoration: none; border-bottom: 1px solid transparent; transition: 0.2s;" onmouseenter="document.body.classList.add('hover-card')" onmouseleave="document.body.classList.remove('hover-card')" onclick="this.style.borderBottomColor='var(--text-muted)'">← Back to Site</a>
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        <span>Sovereign C-Suite Active</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main View Grid -->
+  <main>
+    <!-- Left Sidebar: AI Board Members -->
+    <section class="glass-panel" aria-label="AI Board Members">
+      <div class="panel-header">
+        <h2 class="panel-title"><span>👥</span> AI Executive Roster</h2>
+      </div>
+      <div class="exec-list" id="board-roster">
+        <!-- Execs populated by JS -->
+      </div>
+    </section>
+
+    <!-- Center Column: 3D Visualization & Debates -->
+    <div class="center-column">
+      <!-- 3D Neural Viewport -->
+      <section class="glass-panel canvas-card">
+        <div class="canvas-overlay">
+          <div class="canvas-topic-badge" id="debate-topic-badge">
+            Debating Priority Focus...
+          </div>
+        </div>
+        <div id="neural-canvas-container" style="position: relative;">
+          <!-- Central Overlay Logo Node -->
+          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #c9a84c; font-family: 'Georgia', serif; font-weight: bold; font-size: 13px; letter-spacing: 2.5px; text-shadow: 0 0 15px rgba(201,168,76,0.85); pointer-events: none; text-align: center; z-index: 10; line-height: 1.5; pointer-events: none;">
+            GRAVEFLOW<br>
+            <span style="font-size: 8px; color: #a0a0b0; letter-spacing: 1.5px; font-family: 'Inter', sans-serif; font-weight: normal;">LOVE EFFECT CORE</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Real-Time Debates -->
+      <section class="glass-panel debate-card">
+        <div class="panel-header" style="border: none; margin-bottom: 0.5rem;">
+          <h2 class="panel-title"><span>💬</span> Boardroom Debate Playback</h2>
+        </div>
+        
+        <!-- meeting selector -->
+        <div class="debate-controls">
+          <button class="control-btn" id="prev-btn" title="Previous Session">◀</button>
+          <input type="range" class="cycle-slider" id="cycle-slider" min="0" max="0" value="0" />
+          <button class="control-btn" id="next-btn" title="Next Session">▶</button>
+          <span class="cycle-indicator" id="cycle-label">Cycle 1</span>
+        </div>
+
+        <!-- Chat messages view -->
+        <div class="transcript-box" id="transcript-box">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Final Decision Alert -->
+        <div class="decision-alert">
+          <div class="decision-label">CEO Binding Directive</div>
+          <div class="decision-text" id="decision-text">
+            Compiling AGI Board debate metrics...
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Right Sidebar: Stats, Logs, & Actions -->
+    <div class="right-sidebar">
+      <!-- Platform Stats -->
+      <section class="glass-panel" aria-label="Platform Stats">
+        <div class="panel-header">
+          <h2 class="panel-title"><span>📊</span> Operations Analytics</h2>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-val" id="stat-revenue">$0.00</div>
+            <div class="metric-lbl">Total Revenue</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val" id="stat-gigs">0</div>
+            <div class="metric-lbl">Completed Gigs</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val" id="stat-active">0</div>
+            <div class="metric-lbl">Active Gigs</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val" id="stat-drivers">0</div>
+            <div class="metric-lbl">Drivers Online</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Execution Log -->
+      <section class="glass-panel" style="flex-grow: 1;" aria-label="Action Logs">
+        <div class="panel-header">
+          <h2 class="panel-title"><span>⚙️</span> Autonomous Actions</h2>
+        </div>
+        <div class="actions-box">
+          <div class="action-timeline" id="action-timeline">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Terminal logs -->
+      <section class="glass-panel" style="padding: 1rem;" aria-label="System Log">
+        <div class="panel-header" style="margin-bottom: 0.5rem; padding-bottom: 0.25rem;">
+          <h2 class="panel-title" style="font-size: 0.85rem;"><span>💻</span> KGU Supercomputer Log</h2>
+        </div>
+        <div class="terminal-card" id="terminal-box">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Interactive Scripts -->
+  <script>
+    // ── C-Suite Configuration ────────────────────────────────
+    const EXECUTIVES = {
+      CHAIR: { name: 'Joann Coffey', title: 'Chairperson', emoji: '👑', color: '#c9a84c', desc: 'Founder of KGU International. Enforces The Love Effect OS.' },
+      CEO:  { name: 'Aria Stone',   title: 'CEO',  emoji: '👑', color: '#c9a84c', desc: 'Sets strategy and issues final decisions.' },
+      CFO:  { name: 'Marcus Venn',  title: 'CFO',  emoji: '💼', color: '#22c55e', desc: 'Guards financial health and burn rate.' },
+      COO:  { name: 'Devika Rao',   title: 'COO',  emoji: '⚙️', color: '#06b6d4', desc: 'Owns operations, dispatch and coordination.' },
+      CTO:  { name: 'Jin Park',     title: 'CTO',  emoji: '🧠', color: '#3b82f6', desc: 'Manages LLM inference, LLaVA, and IPFS nodes.' },
+      CMO:  { name: 'Soleil Carter',title: 'CMO',  emoji: '📣', color: '#ec4899', desc: 'Drives marketing campaigns and outreach.' },
+      CHRO: { name: 'Tobias Marsh', title: 'CHRO', emoji: '🤝', color: '#a855f7', desc: 'Supports driver networks and incentives.' },
+    };
+
+    let sessionData = [];
+    let currentIdx = 0;
+
+    // ── Three.js Neural Net Setup ────────────────────────────
+    let scene, camera, renderer, particleSystem, lines, coreGroup, ring1, ring2, ring3;
+    let nodeColors = [];
+    const container = document.getElementById('neural-canvas-container');
+
+    function initThreeScene() {
+      if (!container) return;
+
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+      camera.position.z = 250;
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      container.appendChild(renderer.domElement);
+
+      // Concentric gold/purple rings at the neural center (GraveFlow Core)
+      coreGroup = new THREE.Group();
+      scene.add(coreGroup);
+
+      const ring1Geom = new THREE.RingGeometry(22, 23, 64);
+      const ring1Mat = new THREE.MeshBasicMaterial({ color: 0xc9a84c, side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
+      ring1 = new THREE.Mesh(ring1Geom, ring1Mat);
+      coreGroup.add(ring1);
+
+      const ring2Geom = new THREE.RingGeometry(28, 29, 64);
+      const ring2Mat = new THREE.MeshBasicMaterial({ color: 0x9b6dff, side: THREE.DoubleSide, transparent: true, opacity: 0.35 });
+      ring2 = new THREE.Mesh(ring2Geom, ring2Mat);
+      ring2.rotation.x = Math.PI / 2;
+      coreGroup.add(ring2);
+
+      const ring3Geom = new THREE.RingGeometry(16, 17, 64);
+      const ring3Mat = new THREE.MeshBasicMaterial({ color: 0xc9a84c, side: THREE.DoubleSide, transparent: true, opacity: 0.4 });
+      ring3 = new THREE.Mesh(ring3Geom, ring3Mat);
+      ring3.rotation.y = Math.PI / 4;
+      coreGroup.add(ring3);
+
+      // Create Particle Grid (Neural Nodes)
+      const particleCount = 120;
+      const geometry = new THREE.BufferGeometry();
+      const positions = new Float32Array(particleCount * 3);
+      nodeColors = new Float32Array(particleCount * 3);
+
+      const xRange = 260, yRange = 160, zRange = 100;
+
+      for (let i = 0; i < particleCount; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * xRange;
+        positions[i * 3 + 1] = (Math.random() - 0.5) * yRange;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * zRange;
+
+        // Default soft gold/purple blend
+        nodeColors[i * 3] = 0.79;
+        nodeColors[i * 3 + 1] = 0.66;
+        nodeColors[i * 3 + 2] = 0.3;
+      }
+
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(nodeColors, 3));
+
+      // Glowing dot texture via Canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = 16;
+      canvas.height = 16;
+      const ctx = canvas.getContext('2d');
+      const grad = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
+      grad.addColorStop(0, 'rgba(255,255,255,1)');
+      grad.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 16, 16);
+      const texture = new THREE.CanvasTexture(canvas);
+
+      const material = new THREE.PointsMaterial({
+        size: 5,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.85,
+        map: texture,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
+
+      particleSystem = new THREE.Points(geometry, material);
+      scene.add(particleSystem);
+
+      // Create Connections (Neural Links)
+      const lineGeometry = new THREE.BufferGeometry();
+      const linePositions = [];
+      const lineColors = [];
+
+      // Link nodes that are close to each other
+      const posAttr = geometry.attributes.position;
+      for (let i = 0; i < particleCount; i++) {
+        for (let j = i + 1; j < particleCount; j++) {
+          const dx = posAttr.getX(i) - posAttr.getX(j);
+          const dy = posAttr.getY(i) - posAttr.getY(j);
+          const dz = posAttr.getZ(i) - posAttr.getZ(j);
+          const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+          if (dist < 40) {
+            linePositions.push(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
+            linePositions.push(posAttr.getX(j), posAttr.getY(j), posAttr.getZ(j));
+
+            // Connection line colors matching the node colors
+            lineColors.push(0.3, 0.25, 0.15);
+            lineColors.push(0.3, 0.25, 0.15);
+          }
+        }
+      }
+
+      lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+      lineGeometry.setAttribute('color', new THREE.Float32BufferAttribute(lineColors, 3));
+
+      const lineMaterial = new THREE.LineBasicMaterial({
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.2,
+        blending: THREE.AdditiveBlending
+      });
+
+      lines = new THREE.LineSegments(lineGeometry, lineMaterial);
+      scene.add(lines);
+
+      // Animation Loop
+      let clock = new THREE.Clock();
+      function animate() {
+        requestAnimationFrame(animate);
+        
+        const delta = clock.getDelta();
+        const time = clock.getElapsedTime();
+
+        // Slow rotation
+        particleSystem.rotation.y = time * 0.05;
+        particleSystem.rotation.x = time * 0.02;
+        lines.rotation.y = time * 0.05;
+        lines.rotation.x = time * 0.02;
+
+        // Rotate central GraveFlow Core rings
+        if (coreGroup) {
+          coreGroup.rotation.y = time * 0.2;
+          coreGroup.rotation.x = time * 0.1;
+          if (ring1) ring1.rotation.z = time * 0.05;
+          if (ring2) ring2.rotation.z = -time * 0.08;
+          if (ring3) ring3.rotation.z = time * 0.12;
+        }
+
+        // Animate particles (wave motion)
+        const pos = particleSystem.geometry.attributes.position;
+        for (let i = 0; i < particleCount; i++) {
+          const x = pos.getX(i);
+          pos.setY(i, pos.getY(i) + Math.sin(time + x * 0.08) * 0.05);
+        }
+        pos.needsUpdate = true;
+
+        // Update connection line endpoints
+        const linePos = lines.geometry.attributes.position;
+        let lineIdx = 0;
+        for (let i = 0; i < particleCount; i++) {
+          for (let j = i + 1; j < particleCount; j++) {
+            const dx = pos.getX(i) - pos.getX(j);
+            const dy = pos.getY(i) - pos.getY(j);
+            const dz = pos.getZ(i) - pos.getZ(j);
+            const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+            if (dist < 40 && lineIdx < linePos.count) {
+              linePos.setXYZ(lineIdx, pos.getX(i), pos.getY(i), pos.getZ(i));
+              linePos.setXYZ(lineIdx + 1, pos.getX(j), pos.getY(j), pos.getZ(j));
+              lineIdx += 2;
+            }
+          }
+        }
+        linePos.needsUpdate = true;
+
+        renderer.render(scene, camera);
+      }
+
+      animate();
+
+      // Responsive Resize
+      window.addEventListener('resize', () => {
+        if (!container) return;
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+      });
+    }
+
+    // Pulse nodes toward an executive's color
+    function highlightExecutiveNodes(execColorHex) {
+      if (!particleSystem) return;
+      const color = new THREE.Color(execColorHex);
+      const cols = particleSystem.geometry.attributes.color;
+      for (let i = 0; i < cols.count; i++) {
+        // Randomly color 35% of the nodes with the executive's theme color
+        if (Math.random() < 0.35) {
+          cols.setXYZ(i, color.r, color.g, color.b);
+        } else {
+          // Keep base gold-dim blend
+          cols.setXYZ(i, 0.79, 0.66, 0.3);
+        }
+      }
+      cols.needsUpdate = true;
+    }
+
+    // ── UI populating functions ──────────────────────────────
+    
+    // Draw Roster sidebar
+    function drawRoster() {
+      const list = document.getElementById('board-roster');
+      if (!list) return;
+      list.innerHTML = '';
+      
+      Object.entries(EXECUTIVES).forEach(([role, ex]) => {
+        const card = document.createElement('div');
+        card.className = 'exec-card';
+        card.id = `roster-${role}`;
+        card.style.setProperty('--card-accent', ex.color);
+        card.style.setProperty('--card-accent-alpha', ex.color + '25');
+        
+        card.innerHTML = `
+          <div class="exec-avatar-wrap" aria-hidden="true">${ex.emoji}</div>
+          <div class="exec-info">
+            <h3>${ex.name}</h3>
+            <p>${ex.title} — Active</p>
+          </div>
+        `;
+
+        card.addEventListener('click', () => {
+          // Highlight roster selection
+          document.querySelectorAll('.exec-card').forEach(c => c.classList.remove('active'));
+          card.classList.add('active');
+
+          // Spin AGI nodes to Executive theme color
+          highlightExecutiveNodes(ex.color);
+          
+          // Flash info in terminal
+          appendTerminalLine(`🤖 Connected to C-Suite node: ${ex.name} (${ex.title})`, 'info');
+          appendTerminalLine(`   System configuration: ${ex.desc}`, 'success');
+        });
+
+        // Add magnetic follower class on mouse movement
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left - (rect.width / 2);
+          const y = e.clientY - rect.top - (rect.height / 2);
+          card.style.transform = `translate3d(${x * 0.15}px, ${y * 0.15}px, 0) scale(1.01)`;
+        });
+
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = 'translate3d(0,0,0) scale(1)';
+        });
+
+        card.addEventListener('mouseenter', () => {
+          document.body.classList.add('hover-card');
+        });
+        card.addEventListener('mouseleave', () => {
+          document.body.classList.remove('hover-card');
+        });
+
+        list.appendChild(card);
+      });
+    }
+
+    // Playback specific cycle
+    function displayCycle(index) {
+      if (sessionData.length === 0) return;
+      currentIdx = index;
+
+      const session = sessionData[index];
+      
+      // Update label and slider
+      document.getElementById('cycle-label').textContent = `Cycle ${session.cycle}`;
+      document.getElementById('cycle-slider').value = index;
+
+      // Update Topic Title
+      document.getElementById('debate-topic-badge').textContent = `Boardroom Debate Topic: "${session.topic}"`;
+
+      // Draw Chat bubble debates
+      const transcriptBox = document.getElementById('transcript-box');
+      transcriptBox.innerHTML = '';
+
+      Object.entries(session.boardOpinions || {}).forEach(([role, opinion]) => {
+        const ex = EXECUTIVES[role] || { name: role, emoji: '🤖', color: '#c9a84c', title: 'Board' };
+        
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble ${role}`;
+        
+        bubble.innerHTML = `
+          <div class="chat-bubble-avatar" aria-hidden="true">${ex.emoji}</div>
+          <div class="chat-bubble-content">
+            <div class="chat-bubble-header">
+              <span class="chat-bubble-sender">${ex.name}</span>
+              <span class="chat-bubble-role">${ex.title}</span>
+            </div>
+            <div class="chat-bubble-text">${opinion}</div>
+          </div>
+        `;
+
+        // Intercept click to trigger node highlights
+        bubble.addEventListener('click', () => {
+          highlightExecutiveNodes(ex.color);
+          appendTerminalLine(`💬 Selected quote by ${ex.name} (${ex.title})`, 'info');
+        });
+
+        bubble.addEventListener('mouseenter', () => {
+          document.body.classList.add('hover-card');
+        });
+        bubble.addEventListener('mouseleave', () => {
+          document.body.classList.remove('hover-card');
+        });
+
+        transcriptBox.appendChild(bubble);
+      });
+
+      // Update CEO directive decision text
+      document.getElementById('decision-text').textContent = session.ceoDecision || 'Directive compiled successfully.';
+
+      // Update Stats widgets with cycle metrics
+      const biz = session.businessData || {};
+      document.getElementById('stat-revenue').textContent = biz.totalRevenue ? `$${biz.totalRevenue.toFixed(2)}` : '$0.00';
+      document.getElementById('stat-gigs').textContent = biz.totalGigs || 0;
+      document.getElementById('stat-active').textContent = biz.activeGigs || 0;
+      document.getElementById('stat-drivers').textContent = biz.totalDrivers || 0;
+
+      // Draw triggered actions
+      const timeline = document.getElementById('action-timeline');
+      timeline.innerHTML = '';
+
+      const actions = session.actionsExecuted || [];
+      if (actions.length === 0) {
+        timeline.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:2rem 0;">No campaigns triggered in this cycle.</div>';
+      } else {
+        actions.forEach(act => {
+          const item = document.createElement('div');
+          item.className = 'action-item success';
+          item.innerHTML = `
+            <div class="action-details">
+              <h4>${act.type.toUpperCase().replace('_', ' ')}</h4>
+              <p>Trigger status: Executed and logged to ledger</p>
+            </div>
+          `;
+          timeline.appendChild(item);
+        });
+      }
+
+      // Add visual highlight feedback on nodes
+      highlightExecutiveNodes(EXECUTIVES.CEO.color);
+    }
+
+    // Load session data
+    async function loadSessions() {
+      try {
+        const response = await fetch('/sovereign_sessions.json');
+        if (!response.ok) throw new Error('Fetch failed');
+        sessionData = await response.json();
+        
+        if (sessionData.length > 0) {
+          // Setup Slider limits
+          const slider = document.getElementById('cycle-slider');
+          slider.max = sessionData.length - 1;
+          slider.value = sessionData.length - 1;
+          
+          // Display newest cycle by default
+          displayCycle(sessionData.length - 1);
+          appendTerminalLine(`✅ Sovereign database parsed: ${sessionData.length} active board sessions located.`, 'success');
+        }
+      } catch (err) {
+        console.error('Failed to load sovereign sessions:', err);
+        appendTerminalLine('❌ Failed to fetch sovereign_sessions.json. Is local server running?', 'danger');
+      }
+    }
+
+    // ── Terminal Log functions ──────────────────────────────
+    const terminalLines = [
+      '⚡ Booting GraveFlow Sovereign OS...',
+      '📡 Connecting to KGU Supercomputer Hermes...',
+      '🔗 Local IPFS daemon verified on port 5001',
+      '🤖 Local LLM model loaded: Llama 3.2',
+      '✅ Socket connection established on port 8002',
+      '💎 Dual escrow smart contracts online at 0x5FbDB2315678afecb367f032d93F642f64180aa3',
+    ];
+
+    function initTerminal() {
+      const box = document.getElementById('terminal-box');
+      if (!box) return;
+      box.innerHTML = '';
+      
+      terminalLines.forEach(line => {
+        appendTerminalLine(line);
+      });
+
+      // Poll random logs to look alive
+      setInterval(() => {
+        const randomLogs = [
+          '🔄 Checking gig verification queues...',
+          '💾 Syncing local sqlite database to IPFS ledger...',
+          '🤖 CEO Aria Stone reviewing local driver retention metrics...',
+          '📡 ActivePieces daemon heart-beat: OK',
+          '🛡️ Smart contract escrow locks: verified correct balance',
+          '⚡ Hermes GPU core temperatures: 58°C (nominal)',
+        ];
+        const line = randomLogs[Math.floor(Math.random() * randomLogs.length)];
+        appendTerminalLine(line);
+      }, 7000);
+    }
+
+    function appendTerminalLine(text, statusClass = '') {
+      const box = document.getElementById('terminal-box');
+      if (!box) return;
+      
+      const line = document.createElement('div');
+      line.className = `terminal-line ${statusClass}`;
+      const ts = new Date().toLocaleTimeString();
+      line.innerHTML = `<span>[${ts}]</span> ${text}`;
+      
+      box.appendChild(line);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    // ── Mouse Cursor Follower ───────────────────────────────
+    function initCursor() {
+      const cursor = document.getElementById('cursor');
+      const cursorRing = document.getElementById('cursor-ring');
+      
+      if (!cursor || !cursorRing) return;
+
+      let mouseX = 0, mouseY = 0;
+      let ringX = 0, ringY = 0;
+      let cursorX = 0, cursorY = 0;
+
+      window.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      });
+
+      const tick = () => {
+        cursorX += (mouseX - cursorX) * 0.25;
+        cursorY += (mouseY - cursorY) * 0.25;
+        ringX += (mouseX - ringX) * 0.12;
+        ringY += (mouseY - ringY) * 0.12;
+
+        cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%)`;
+        cursorRing.style.transform = `translate3d(${ringX}px, ${ringY}px, 0) translate(-50%, -50%)`;
+
+        requestAnimationFrame(tick);
+      };
+      tick();
+
+      // Controls/buttons hover feedback
+      document.querySelectorAll('.control-btn, .cycle-slider').forEach(btn => {
+        btn.addEventListener('mouseenter', () => document.body.classList.add('hover-card'));
+        btn.addEventListener('mouseleave', () => document.body.classList.remove('hover-card'));
+      });
+    }
+
+    // ── Event Handlers ───────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      drawRoster();
+      initThreeScene();
+      initTerminal();
+      initCursor();
+      loadSessions();
+
+      // Playback slider listener
+      const slider = document.getElementById('cycle-slider');
+      slider.addEventListener('input', (e) => {
+        displayCycle(parseInt(e.target.value));
+      });
+
+      // Next / Prev Button listener
+      document.getElementById('prev-btn').addEventListener('click', () => {
+        if (currentIdx > 0) {
+          displayCycle(currentIdx - 1);
+        }
+      });
+
+      document.getElementById('next-btn').addEventListener('click', () => {
+        if (currentIdx < sessionData.length - 1) {
+          displayCycle(currentIdx + 1);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+node_modules
+npm-debug.log
+.DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.grave_cache
+.stitch
+GraveFlow_App_Code.zip
+KGU_COMMAND_CENTER
+Mike Lui 
+activepieces
+board_reports
+dataset
+deploy
+docs
+logs
+mobile
+scratch
+scripts
+uploads
+*.db
+*.sqlite
+*.sqlite-journal
+*.log

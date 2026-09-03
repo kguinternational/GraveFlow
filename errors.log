@@ -1,0 +1,154 @@
+Created At: 2026-07-14T00:08:28Z
+Completed At: 2026-07-14T00:08:28Z
+2026-07-08 18:00:04,551 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:04,554 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:04,810 WARNING tools.registry: check_fn check_close_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:04,819 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:04,854 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:04,855 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:04,855 WARNING tools.registry: check_fn check_read_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:10,622 WARNING [20260708_180001_ff238d] agent.conversation_loop: API call failed (attempt 1/3) error_type=BadRequestError thread=Thread-3 (run_agent):6138540032 provider=custom base_url=https://openrouter.ai/api/v1 model=hermes3 summary=HTTP 400: hermes3 is not a valid model ID
+2026-07-08 18:00:10,663 ERROR [20260708_180001_ff238d] agent.conversation_loop: Non-retryable client error: Error code: 400 - {'error': {'message': 'hermes3 is not a valid model ID', 'code': 400}, 'user_id': 'org_33tE25PQrmiZS08z5sgOOos9fWQ'}
+2026-07-08 18:00:30,369 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:30,372 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:30,480 WARNING tools.registry: check_fn check_close_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:30,481 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:30,495 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:30,496 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:30,496 WARNING tools.registry: check_fn check_read_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:31,255 WARNING [20260708_180029_e7fccd] agent.conversation_loop: API call failed (attempt 1/3) error_type=NotFoundError thread=Thread-2 (run_agent):6118666240 provider=custom base_url=http://localhost:11434/v1 model=hermes3 summary=HTTP 404: model 'hermes3' not found
+2026-07-08 18:00:31,256 WARNING [20260708_180029_e7fccd] agent.conversation_loop: Retrying API call in 2.588815325278987s (attempt 1/3) thread=Thread-2 (run_agent):6118666240 provider=custom base_url=http://localhost:11434/v1 model=hermes3 policy=default error=Error code: 404 - {'error': {'message': "model 'hermes3' not found", 'type': 'not_found_error', 'param': None, 'code': None}}
+2026-07-08 18:00:33,931 WARNING [20260708_180029_e7fccd] agent.conversation_loop: API call failed (attempt 2/3) error_type=NotFoundError thread=Thread-2 (run_agent):6118666240 provider=custom base_url=http://localhost:11434/v1 model=hermes3 summary=HTTP 404: model 'hermes3' not found
+2026-07-08 18:00:33,932 WARNING [20260708_180029_e7fccd] agent.conversation_loop: Retrying API call in 5.364540599178543s (attempt 2/3) thread=Thread-2 (run_agent):6118666240 provider=custom base_url=http://localhost:11434/v1 model=hermes3 policy=default error=Error code: 404 - {'error': {'message': "model 'hermes3' not found", 'type': 'not_found_error', 'param': None, 'code': None}}
+2026-07-08 18:00:39,457 WARNING [20260708_180029_e7fccd] agent.conversation_loop: API call failed (attempt 3/3) error_type=NotFoundError thread=Thread-2 (run_agent):6118666240 provider=custom base_url=http://localhost:11434/v1 model=hermes3 summary=HTTP 404: model 'hermes3' not found
+2026-07-08 18:00:39,472 ERROR [20260708_180029_e7fccd] agent.conversation_loop: API call failed after 3 retries. HTTP 404: model 'hermes3' not found | provider=custom model=hermes3 msgs=2 tokens=~4,027
+2026-07-08 18:00:57,412 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:57,414 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:57,451 WARNING tools.registry: check_fn check_close_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:57,452 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:57,466 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:57,467 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:57,467 WARNING tools.registry: check_fn check_read_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:00:58,023 WARNING [20260708_180056_325b5e] agent.conversation_loop: API call failed (attempt 1/3) error_type=NotFoundError thread=Thread-2 (run_agent):6175469568 provider=custom base_url=http://localhost:11434/v1 model=hermes3:latest summary=HTTP 404: model 'hermes3:latest' not found
+2026-07-08 18:00:58,024 WARNING [20260708_180056_325b5e] agent.conversation_loop: Retrying API call in 2.252074722863962s (attempt 1/3) thread=Thread-2 (run_agent):6175469568 provider=custom base_url=http://localhost:11434/v1 model=hermes3:latest policy=default error=Error code: 404 - {'error': {'message': "model 'hermes3:latest' not found", 'type': 'not_found_error', 'param': None, 'code': None}}
+2026-07-08 18:01:00,492 WARNING [20260708_180056_325b5e] agent.conversation_loop: API call failed (attempt 2/3) error_type=NotFoundError thread=Thread-2 (run_agent):6175469568 provider=custom base_url=http://localhost:11434/v1 model=hermes3:latest summary=HTTP 404: model 'hermes3:latest' not found
+2026-07-08 18:01:00,493 WARNING [20260708_180056_325b5e] agent.conversation_loop: Retrying API call in 5.641562815676023s (attempt 2/3) thread=Thread-2 (run_agent):6175469568 provider=custom base_url=http://localhost:11434/v1 model=hermes3:latest policy=default error=Error code: 404 - {'error': {'message': "model 'hermes3:latest' not found", 'type': 'not_found_error', 'param': None, 'code': None}}
+2026-07-08 18:01:06,206 WARNING [20260708_180056_325b5e] agent.conversation_loop: API call failed (attempt 3/3) error_type=NotFoundError thread=Thread-2 (run_agent):6175469568 provider=custom base_url=http://localhost:11434/v1 model=hermes3:latest summary=HTTP 404: model 'hermes3:latest' not found
+2026-07-08 18:01:06,220 ERROR [20260708_180056_325b5e] agent.conversation_loop: API call failed after 3 retries. HTTP 404: model 'hermes3:latest' not found | provider=custom model=hermes3:latest msgs=2 tokens=~4,029
+2026-07-08 18:01:35,363 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-07-08 18:01:35,365 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-07-08 18:01:35,395 WARNING tools.registry: check_fn check_close_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:01:35,397 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:01:35,410 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-07-08 18:01:35,411 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-07-08 18:01:35,411 WARNING tools.registry: check_fn check_read_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:01:37,042 WARNING [20260708_180134_997096] agent.conversation_loop: API call failed (attempt 1/3) error_type=BadRequestError thread=Thread-2 (run_agent):6181400576 provider=custom base_url=https://openrouter.ai/api/v1 model=hermes3:latest summary=HTTP 400: hermes3:latest is not a valid model ID
+2026-07-08 18:01:37,084 ERROR [20260708_180134_997096] agent.conversation_loop: Non-retryable client error: Error code: 400 - {'error': {'message': 'hermes3:latest is not a valid model ID', 'code': 400}, 'user_id': 'org_33tE25PQrmiZS08z5sgOOos9fWQ'}
+2026-07-08 18:01:43,738 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-07-08 18:01:43,750 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-07-08 18:01:43,793 WARNING tools.registry: check_fn check_close_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:01:43,794 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:01:43,820 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-07-08 18:01:43,824 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-07-08 18:01:43,838 WARNING tools.registry: check_fn check_read_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:01:44,936 WARNING [20260708_180143_3cc0ab] agent.conversation_loop: API call failed (attempt 1/3) error_type=BadRequestError thread=Thread-2 (run_agent):6121631744 provider=custom base_url=https://openrouter.ai/api/v1 model=hermes3:latest summary=HTTP 400: hermes3:latest is not a valid model ID
+2026-07-08 18:01:44,972 ERROR [20260708_180143_3cc0ab] agent.conversation_loop: Non-retryable client error: Error code: 400 - {'error': {'message': 'hermes3:latest is not a valid model ID', 'code': 400}, 'user_id': 'org_33tE25PQrmiZS08z5sgOOos9fWQ'}
+2026-07-08 18:02:47,128 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-07-08 18:02:47,131 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-07-08 18:02:47,289 WARNING tools.registry: check_fn check_close_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:02:47,290 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:02:47,305 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-07-08 18:02:47,306 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-07-08 18:02:47,306 WARNING tools.registry: check_fn check_read_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:02:48,457 WARNING [20260708_180246_33cd2b] agent.conversation_loop: API call failed (attempt 1/3) error_type=BadRequestError thread=Thread-2 (run_agent):6116323328 provider=custom base_url=https://openrouter.ai/api/v1 model=hermes3:latest summary=HTTP 400: hermes3:latest is not a valid model ID
+2026-07-08 18:02:48,492 ERROR [20260708_180246_33cd2b] agent.conversation_loop: Non-retryable client error: Error code: 400 - {'error': {'message': 'hermes3:latest is not a valid model ID', 'code': 400}, 'user_id': 'org_33tE25PQrmiZS08z5sgOOos9fWQ'}
+2026-07-08 18:03:08,800 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-07-08 18:03:08,802 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-07-08 18:03:08,836 WARNING tools.registry: check_fn check_close_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:03:08,836 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:03:08,848 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-07-08 18:03:08,849 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-07-08 18:03:08,849 WARNING tools.registry: check_fn check_read_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:03:09,905 WARNING [20260708_180308_2d40bf] agent.conversation_loop: API call failed (attempt 1/3) error_type=BadRequestError thread=Thread-2 (run_agent):6177042432 provider=custom base_url=https://openrouter.ai/api/v1 model=hermes3:latest summary=HTTP 400: hermes3:latest is not a valid model ID
+2026-07-08 18:03:09,946 ERROR [20260708_180308_2d40bf] agent.conversation_loop: Non-retryable client error: Error code: 400 - {'error': {'message': 'hermes3:latest is not a valid model ID', 'code': 400}, 'user_id': 'org_33tE25PQrmiZS08z5sgOOos9fWQ'}
+2026-07-08 18:03:22,654 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-07-08 18:03:22,656 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-07-08 18:03:22,690 WARNING tools.registry: check_fn check_close_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:03:22,692 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:03:22,703 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-07-08 18:03:22,704 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-07-08 18:03:22,704 WARNING tools.registry: check_fn check_read_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:03:23,621 WARNING [20260708_180322_66bf47] agent.conversation_loop: API call failed (attempt 1/3) error_type=BadRequestError thread=Thread-2 (run_agent):6111244288 provider=custom base_url=https://openrouter.ai/api/v1 model=hermes3:latest summary=HTTP 400: hermes3:latest is not a valid model ID
+2026-07-08 18:03:23,656 ERROR [20260708_180322_66bf47] agent.conversation_loop: Non-retryable client error: Error code: 400 - {'error': {'message': 'hermes3:latest is not a valid model ID', 'code': 400}, 'user_id': 'org_33tE25PQrmiZS08z5sgOOos9fWQ'}
+2026-07-08 18:04:29,178 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-07-08 18:04:29,180 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-07-08 18:04:29,221 WARNING tools.registry: check_fn check_close_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:04:29,222 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-07-08 18:04:29,234 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-07-08 18:04:29,234 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-07-08 18:04:29,234 WARNING tools.registry: check_fn check_read_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-12 14:00:25,084 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-07-12 14:00:25,088 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-07-12 14:00:25,662 WARNING tools.registry: check_fn check_close_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-12 14:00:25,663 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-07-12 14:00:25,677 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-07-12 14:00:25,678 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-07-12 14:00:25,678 WARNING tools.registry: check_fn check_read_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-12 14:00:26,323 WARNING tools.registry: check_fn check_discord_tool_requirements returned False; dependent tools will be unavailable this turn
+2026-07-12 14:00:26,323 WARNING tools.registry: check_fn _check_feishu returned False; dependent tools will be unavailable this turn
+2026-07-12 14:00:26,323 WARNING tools.registry: check_fn _check_feishu returned False; dependent tools will be unavailable this turn
+2026-07-12 14:00:26,372 WARNING tools.registry: check_fn _check_yuanbao returned False; dependent tools will be unavailable this turn
+2026-07-12 14:00:26,372 WARNING tools.registry: check_fn _check_ha_available returned False; dependent tools will be unavailable this turn
+2026-07-12 14:00:26,372 WARNING tools.registry: check_fn _check_spotify_available returned False; dependent tools will be unavailable this turn
+2026-07-12 14:00:26,377 WARNING tools.registry: check_fn check_video_generation_requirements returned False; dependent tools will be unavailable this turn
+2026-07-12 14:00:26,378 WARNING tools.registry: check_fn _check_xai_video_requirements returned False; dependent tools will be unavailable this turn
+2026-07-12 14:00:26,381 WARNING tools.registry: check_fn check_x_search_requirements returned False; dependent tools will be unavailable this turn
+2026-07-12 14:02:39,731 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-07-12 14:02:39,735 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-07-12 14:02:39,792 WARNING tools.registry: check_fn check_close_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-12 14:02:39,792 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-07-12 14:02:39,806 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-07-12 14:02:39,807 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-07-12 14:02:39,807 WARNING tools.registry: check_fn check_read_terminal_requirements returned False; dependent tools will be unavailable this turn
+2026-07-13 16:49:57,105 ERROR asyncio: Task exception was never retrieved
+future: <Task finished name='Task-1579' coro=<run_in_terminal.<locals>.run() done, defined at /Users/jccoffey/.hermes/hermes-agent/venv/lib/python3.11/site-packages/prompt_toolkit/application/run_in_terminal.py:48> exception=OSError(5, 'Input/output error')>
+Traceback (most recent call last):
+  File "/Users/jccoffey/.hermes/hermes-agent/venv/lib/python3.11/site-packages/prompt_toolkit/application/run_in_terminal.py", line 53, in run
+    return func()
+           ^^^^^^
+  File "/Users/jccoffey/.hermes/hermes-agent/venv/lib/python3.11/site-packages/prompt_toolkit/patch_stdout.py", line 219, in write_and_flush
+    self._output.flush()
+  File "/Users/jccoffey/.hermes/hermes-agent/venv/lib/python3.11/site-packages/prompt_toolkit/output/vt100.py", line 706, in flush
+    flush_stdout(self.stdout, data)
+  File "/Users/jccoffey/.hermes/hermes-agent/venv/lib/python3.11/site-packages/prompt_toolkit/output/flush_stdout.py", line 37, in flush_stdout
+    stdout.flush()
+OSError: [Errno 5] Input/output error
+2026-07-13 19:59:54,525 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-07-13 19:59:54,529 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-07-13 19:59:54,531 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-07-13 19:59:54,531 WARNING tools.registry: check_fn check_discord_tool_requirements returned False; dependent tools will be unavailable this turn
+2026-07-13 19:59:54,531 WARNING tools.registry: check_fn _check_feishu returned False; dependent tools will be unavailable this turn
+2026-07-13 19:59:54,532 WARNING tools.registry: check_fn _check_feishu returned False; dependent tools will be unavailable this turn
+2026-07-13 19:59:54,539 WARNING tools.registry: check_fn _check_yuanbao returned False; dependent tools will be unavailable this turn
+2026-07-13 19:59:54,539 WARNING tools.registry: check_fn _check_ha_available returned False; dependent tools will be unavailable this turn
+2026-07-13 19:59:54,557 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-07-13 19:59:54,558 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-07-13 19:59:54,558 WARNING tools.registry: check_fn _check_spotify_available returned False; dependent tools will be unavailable this turn
+2026-07-13 19:59:54,736 WARNING tools.registry: check_fn check_video_generation_requirements returned False; dependent tools will be unavailable this turn
+2026-07-13 19:59:54,737 WARNING tools.registry: check_fn _check_xai_video_requirements returned False; dependent tools will be unavailable this turn
+2026-07-13 19:59:54,741 WARNING tools.registry: check_fn check_x_search_requirements returned False; dependent tools will be unavailable this turn
+2026-07-13 20:00:11,300 WARNING tools.registry: check_fn _browser_cdp_check returned False; dependent tools will be unavailable this turn
+2026-07-13 20:00:11,302 WARNING tools.registry: check_fn _browser_dialog_check returned False; dependent tools will be unavailable this turn
+2026-07-13 20:00:11,303 WARNING tools.registry: check_fn check_computer_use_requirements returned False; dependent tools will be unavailable this turn
+2026-07-13 20:00:11,303 WARNING tools.registry: check_fn check_discord_tool_requirements returned False; dependent tools will be unavailable this turn
+2026-07-13 20:00:11,303 WARNING tools.registry: check_fn _check_feishu returned False; dependent tools will be unavailable this turn
+2026-07-13 20:00:11,303 WARNING tools.registry: check_fn _check_feishu returned False; dependent tools will be unavailable this turn
+2026-07-13 20:00:11,306 WARNING tools.registry: check_fn _check_yuanbao returned False; dependent tools will be unavailable this turn
+2026-07-13 20:00:11,306 WARNING tools.registry: check_fn _check_ha_available returned False; dependent tools will be unavailable this turn
+2026-07-13 20:00:11,318 WARNING tools.registry: check_fn _check_kanban_mode returned False; dependent tools will be unavailable this turn
+2026-07-13 20:00:11,319 WARNING tools.registry: check_fn _check_kanban_orchestrator_mode returned False; dependent tools will be unavailable this turn
+2026-07-13 20:00:11,319 WARNING tools.registry: check_fn _check_spotify_available returned False; dependent tools will be unavailable this turn
+2026-07-13 20:00:11,402 WARNING tools.registry: check_fn check_video_generation_requirements returned False; dependent tools will be unavailable this turn
+2026-07-13 20:00:11,402 WARNING tools.registry: check_fn _check_xai_video_requirements returned False; dependent tools will be unavailable this turn
+2026-07-13 20:00:11,407 WARNING tools.registry: check_fn check_x_search_requirements returned False; dependent tools will be unavailable this turn
+

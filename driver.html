@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script type="importmap">
+  {
+    "imports": {
+      "livekit-client": "https://cdn.jsdelivr.net/npm/livekit-client@2.11.3/+esm",
+      "protobufjs": "https://cdn.jsdelivr.net/npm/protobufjs@7.5.0/+esm"
+    }
+  }
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#c9a84c" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="GF Driver" />
+  <script>
+    window.REQUIRED_ROLES = ['driver'];
+  </script>
+  <script src="auth_guard.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+  <style>
+    /* ── Reset & Base ────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0a0a;
+      --card:      #111111;
+      --card-alt:  #1a1a1a;
+      --accent:    #c9a84c;
+      --accent-dim:#a8873d;
+      --text:      #e8e8e8;
+      --text-muted:#888888;
+      --success:   #4caf50;
+      --danger:    #f44336;
+      --border:    #2a2a2a;
+      --radius:    8px;
+      --touch-min: 44px;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Layout ──────────────────────────────────────────────────── */
+    .app {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0 0 120px;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────── */
+    .header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-icon {
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .logo-text {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+    }
+
+    .connection-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      min-height: var(--touch-min);
+      white-space: nowrap;
+    }
+
+    .connection-badge.connected  { border-color: var(--success); color: var(--success); }
+    .connection-badge.connecting { border-color: var(--accent);  color: var(--accent);  }
+    .connection-badge.offline    { border-color: var(--danger);  color: var(--danger);  }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    .dot.pulse {
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    .driver-id-row {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .driver-id-label { color: var(--text-muted); }
+
+    .driver-id-value {
+      font-family: 'Courier New', monospace;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+
+    /* ── Section Wrappers ────────────────────────────────────────── */
+    .section {
+      padding: 16px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    /* ── Cards ───────────────────────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .card-alt {
+      background: var(--card-alt);
+    }
+
+    /* ── Gig Card ────────────────────────────────────────────────── */
+    .gig-card {
+      animation: slideIn 0.25s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .gig-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      gap: 8px;
+    }
+
+    .gig-cemetery {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .gig-payout {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .gig-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .gig-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .gig-chip.plot {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .gig-service-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── Waiting placeholder ─────────────────────────────────────── */
+    .waiting-placeholder {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+
+    .waiting-placeholder .waiting-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      opacity: 0.4;
+      animation: breathe 3s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      0%, 100% { opacity: 0.2; transform: scale(1);    }
+      50%       { opacity: 0.5; transform: scale(1.05); }
+    }
+
+    .waiting-placeholder p {
+      font-size: 14px;
+    }
+
+    /* ── Buttons ─────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: var(--touch-min);
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      letter-spacing: 0.3px;
+      transition: opacity 0.15s, transform 0.1s;
+      text-decoration: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0a0a0a;
+      width: 100%;
+    }
+
+    .btn-primary:hover:not(:disabled) { background: var(--accent-dim); }
+
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+      width: 100%;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+      width: 100%;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 100%;
+    }
+
+    .btn-outline:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+
+    .btn-sm {
+      min-height: 36px;
+      padding: 6px 14px;
+      font-size: 13px;
+    }
+
+    /* ── Accepted Gig View ───────────────────────────────────────── */
+    #accepted-section {
+      display: none;
+    }
+
+    .accepted-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .accepted-status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+
+    .accepted-label {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .detail-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+    }
+
+    .detail-item-label {
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .detail-item-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .detail-item-value.accent { color: var(--accent); }
+
+    /* ── Photo Capture ───────────────────────────────────────────── */
+    #photo-input { display: none; }
+
+    .camera-btn-wrapper {
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    .camera-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 120px;
+      background: var(--bg);
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .camera-btn:hover, .camera-btn:active {
+      border-color: var(--accent);
+      background: rgba(201,168,76,0.05);
+    }
+
+    .camera-btn.captured {
+      border-style: solid;
+      border-color: var(--success);
+      background: rgba(76,175,80,0.05);
+    }
+
+    .camera-icon {
+      font-size: 40px;
+      line-height: 1;
+    }
+
+    .camera-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .camera-btn.captured .camera-label {
+      color: var(--success);
+    }
+
+    .photo-preview {
+      width: 100%;
+      max-height: 240px;
+      object-fit: cover;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      display: none;
+      margin-bottom: 12px;
+    }
+
+    .photo-preview.visible { display: block; }
+
+    /* ── GPS ─────────────────────────────────────────────────────── */
+    .gps-display {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      word-break: break-all;
+    }
+
+    .gps-display.captured {
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .gps-icon { font-size: 16px; flex-shrink: 0; }
+
+    /* ── Submit ───────────────────────────────────────────────────── */
+    .submit-section {
+      margin-top: 16px;
+    }
+
+    /* ── Result Banner ───────────────────────────────────────────── */
+    #result-section {
+      display: none;
+      padding: 16px;
+    }
+
+    .result-banner {
+      border-radius: var(--radius);
+      padding: 32px 16px;
+      text-align: center;
+      animation: slideIn 0.3s ease;
+    }
+
+    .result-banner.verified {
+      background: rgba(76,175,80,0.15);
+      border: 2px solid var(--success);
+    }
+
+    .result-banner.quarantined {
+      background: rgba(244,67,54,0.15);
+      border: 2px solid var(--danger);
+    }
+
+    .result-icon {
+      font-size: 64px;
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+
+    .result-label {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .result-banner.verified   .result-label { color: var(--success); }
+    .result-banner.quarantined .result-label { color: var(--danger);  }
+
+    .result-reason {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-top: 8px;
+    }
+
+    /* ── TTS ─────────────────────────────────────────────────────── */
+    .tts-section {
+      padding: 0 16px 16px;
+    }
+
+    .tts-indicator {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--accent);
+      margin-top: 8px;
+    }
+
+    .tts-indicator.visible { display: flex; }
+
+    .wave {
+      display: flex;
+      gap: 3px;
+      align-items: flex-end;
+      height: 20px;
+    }
+
+    .wave span {
+      display: block;
+      width: 3px;
+      background: var(--accent);
+      border-radius: 2px;
+      animation: wave 0.8s ease-in-out infinite;
+    }
+
+    .wave span:nth-child(1) { height: 6px;  animation-delay: 0s;    }
+    .wave span:nth-child(2) { height: 14px; animation-delay: 0.1s;  }
+    .wave span:nth-child(3) { height: 10px; animation-delay: 0.2s;  }
+    .wave span:nth-child(4) { height: 18px; animation-delay: 0.15s; }
+    .wave span:nth-child(5) { height: 8px;  animation-delay: 0.05s; }
+
+    @keyframes wave {
+      0%, 100% { transform: scaleY(0.4); }
+      50%       { transform: scaleY(1);   }
+    }
+
+    /* ── Loading Spinner ─────────────────────────────────────────── */
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(10,10,10,0.3);
+      border-top-color: #0a0a0a;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── Toast ───────────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--card-alt);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      z-index: 999;
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      white-space: nowrap;
+      max-width: calc(100vw - 32px);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Divider ─────────────────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0;
+    }
+
+    /* ── Error msg ───────────────────────────────────────────────── */
+    .error-msg {
+      font-size: 13px;
+      color: var(--danger);
+      margin-top: 8px;
+      display: none;
+    }
+
+    .error-msg.visible { display: block; }
+
+    /* ── Reset / new gig btn ─────────────────────────────────────── */
+    .reset-btn-wrapper {
+      padding: 0 16px 16px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ HEADER ═══════════════════════════════ -->
+<header class="header">
+  <div class="header-top">
+    <a href="index.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px;">
+      <div class="logo">
+        <img src="assets/logo.png" class="logo-icon" style="height: 24px; border-radius: 50%; border:2px solid #007aff; box-shadow:0 0 10px #007aff;" alt="Logo" />
+        <span class="logo-text">GraveFlow Driver</span>
+      </div>
+    </a>
+    <div id="conn-badge" class="connection-badge connecting">
+      <span class="dot pulse"></span>
+      <span id="conn-label">Connecting…</span>
+    </div>
+  </div>
+  <div class="driver-id-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+    <div>
+      <span class="driver-id-label">Driver:</span>
+      <span id="driver-name-display" class="driver-id-value">—</span>
+      <span style="margin: 0 8px; opacity: 0.5;">|</span>
+      <span class="driver-id-label">ID:</span>
+      <span id="driver-id-display" class="driver-id-value">—</span>
+    </div>
+    <button onclick="doLogout()" style="background: none; border: 1px solid var(--border); color: var(--accent); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer;">Log Out</button>
+  </div>
+</header>
+
+<div class="app">
+
+  <!-- ═══════════════════════════ HONOR FEED ═══════════════════════════════ -->
+  <div id="feed-section" class="section">
+    <div class="section-title">Available Honors</div>
+    <div id="gig-list">
+      <div class="waiting-placeholder">
+        <div class="waiting-icon">📡</div>
+        <p>Waiting for honors…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ ACCEPTED HONOR ═══════════════════════════ -->
+  <div id="accepted-section" class="section">
+
+    <div class="accepted-header">
+      <div class="accepted-status-dot"></div>
+      <span class="accepted-label">Active Honor</span>
+    </div>
+
+    <div class="card card-alt">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="detail-item-label">Cemetery</div>
+          <div id="acc-cemetery" class="detail-item-value">—</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item-label">Plot</div>
+          <div id="acc-plot" class="detail-item-value accent">—</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item-label">Service Type</div>
+          <div id="acc-service" class="detail-item-value">—</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item-label">Payout</div>
+          <div id="acc-payout" class="detail-item-value accent">—</div>
+        </div>
+      </div>
+      <div id="acc-description" class="gig-service-desc">—</div>
+      <!-- Map Container -->
+      <div id="driver-map" style="height: 200px; border-radius: 8px; margin-top: 12px; border: 1px solid var(--border); display: none; z-index: 10;"></div>
+    </div>
+
+    <!-- TTS -->
+    <div class="tts-section">
+      <button class="btn btn-secondary" onclick="speakDescription()" id="btn-speak-desc">
+        🔊 Read Honor Details
+      </button>
+      <div id="tts-indicator" class="tts-indicator">
+        <div class="wave">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <span>Playing…</span>
+      </div>
+    </div>
+
+    <!-- Photo Capture -->
+    <div class="section">
+      <div class="section-title">Step 1 — Capture Photo</div>
+      <input type="file" accept="image/*" capture="environment" id="photo-input" />
+      <div class="camera-btn-wrapper">
+        <label for="photo-input" id="camera-btn" class="camera-btn" role="button" tabindex="0"
+               aria-label="Capture photo">
+          <span class="camera-icon">📷</span>
+          <span class="camera-label" id="camera-label-text">Tap to take photo</span>
+        </label>
+      </div>
+      <img id="photo-preview" class="photo-preview" alt="Captured photo preview" />
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- GPS Capture -->
+    <div class="section">
+      <div class="section-title">Step 2 — Capture Location</div>
+      <div id="gps-display" class="gps-display">
+        <span class="gps-icon">📍</span>
+        <span id="gps-text">Location not captured</span>
+      </div>
+      <button id="gps-btn" class="btn btn-outline">
+        📡 Capture GPS Location
+      </button>
+      <div id="gps-error" class="error-msg"></div>
+      <!-- Manual GPS fallback (shown when geolocation fails) -->
+      <div id="gps-manual-fallback" style="display:none; margin-top:12px;">
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">📌 Enter coordinates manually:</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <input id="manual-lat" type="number" step="any" placeholder="Latitude (e.g. 40.7128)"
+            style="flex:1; min-width:130px; padding:8px 10px; background:var(--card-alt); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-size:0.875rem;" />
+          <input id="manual-lon" type="number" step="any" placeholder="Longitude (e.g. -74.0060)"
+            style="flex:1; min-width:130px; padding:8px 10px; background:var(--card-alt); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); font-size:0.875rem;" />
+          <button onclick="acceptManualGPS()" class="btn btn-outline" style="white-space:nowrap; padding:8px 16px; font-size:0.85rem;">
+            ✅ Use These Coordinates
+          </button>
+        </div>
+        <div id="gps-manual-error" style="font-size:0.8rem; color:var(--danger); margin-top:6px;"></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Submit -->
+    <div class="section">
+      <div class="section-title">Step 3 — Submit Proof</div>
+      <div class="submit-section">
+        <button id="submit-btn" class="btn btn-primary" disabled>
+          Submit Proof
+        </button>
+        <div id="submit-error" class="error-msg"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════ RESULT ══════════════════════════════════ -->
+  <div id="result-section">
+    <div id="result-banner" class="result-banner">
+      <div id="result-icon" class="result-icon"></div>
+      <div id="result-label" class="result-label"></div>
+      <div id="result-reason" class="result-reason"></div>
+    </div>
+  </div>
+
+  <!-- Reset / new honor button (shown after result) -->
+  <div id="reset-wrapper" class="reset-btn-wrapper" style="display:none;">
+    <div id="btn-reset-gig" class="btn btn-outline" style="display:none; margin-top:20px;" onclick="resetGig()">
+      🔄 Accept Another Honor
+    </div>
+  </div>
+
+</div><!-- /.app -->
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Socket.io CDN -->
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+<script>
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+  ? 'http://localhost:8002'
+  : window.location.origin + '/api';
+const TTS_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+  ? 'http://localhost:8001'
+  : window.location.origin + '/tts';
+
+const state = {
+  driverId:           null,
+  availableGigs:      [],   // list of honor objects from socket
+  acceptedGig:        null,
+  capturedImageBase64:null,
+  capturedGPS:        null,
+  submitting:         false,
+  connected:          false,
+};
+
+window.addEventListener('auth-ready', (e) => {
+  const user = e.detail;
+  state.driverId = user.callsign || user.id;
+  document.getElementById('driver-id-display').textContent = state.driverId;
+  document.getElementById('driver-name-display').textContent = user.name;
+});
+
+function doLogout() {
+  localStorage.removeItem('gf_token');
+  localStorage.removeItem('gf_user');
+  localStorage.removeItem('graveflow_driver_id');
+  window.location.reload();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════════════════════════════
+let toastTimer = null;
+function showToast(msg, duration = 3000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), duration);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+//  CONNECTION BADGE
+// ══════════════════════════════════════════════════════════════════════════
+function setConnectionStatus(status) {
+  // status: 'connecting' | 'connected' | 'offline'
+  const badge = document.getElementById('conn-badge');
+  const label = document.getElementById('conn-label');
+  const dot   = badge.querySelector('.dot');
+
+  badge.className = 'connection-badge ' + status;
+
+  switch (status) {
+    case 'connected':
+      label.textContent = 'Connected';
+      dot.classList.remove('pulse');
+      break;
+    case 'connecting':
+      label.textContent = 'Connecting…';
+      dot.classList.add('pulse');
+      break;
+    case 'offline':
+      label.textContent = 'Offline';
+      dot.classList.remove('pulse');
+      break;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+//  SOCKET.IO
+// ══════════════════════════════════════════════════════════════════════════
+let socket;
+try {
+  const PROD_BACKEND_SOCKET = 'https://api.graveflow.com';
+  const socketHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+    ? 'http://localhost:8002'
+    : PROD_BACKEND_SOCKET;
+  socket = io(socketHost, {
+    transports:         ['websocket', 'polling'],
+    reconnectionDelay:  2000,
+    reconnectionAttempts: Infinity,
+  });
+
+  socket.on('connect', () => {
+    state.connected = true;
+    setConnectionStatus('connected');
+    showToast('🔌 Connected to dispatch');
+  });
+
+  socket.on('disconnect', () => {
+    state.connected = false;
+    setConnectionStatus('offline');
+    showToast('⚠️ Disconnected from dispatch');
+  });
+
+  socket.on('connect_error', () => {
+    state.connected = false;
+    setConnectionStatus('offline');
+  });
+
+  socket.on('reconnect_attempt', () => {
+    setConnectionStatus('connecting');
+  });
+
+  socket.on('gig_available', (gig) => {
+    // gig: { id, cemetery, plotNumber, serviceType, payout, description }
+    if (!gig || !gig.id) return;
+    // Avoid duplicates
+    const exists = state.availableGigs.find(g => g.id === gig.id);
+    if (!exists) {
+      state.availableGigs.unshift(gig);
+      renderGigFeed();
+      showToast('📋 New honor available!');
+    }
+  });
+
+  // Real-time verification results
+  socket.on('proof_verified', (data) => {
+    // data: { jobId, message, ... }
+    if (state.acceptedGig && data && data.jobId === state.acceptedGig.id) {
+      showResult('verified', '✅', 'VERIFIED', data.message || 'Proof accepted.');
+    }
+  });
+
+  socket.on('anomaly_detected', (data) => {
+    if (state.acceptedGig && data && data.jobId === state.acceptedGig.id) {
+      showResult('quarantined', '🚨', 'QUARANTINED', data.reason || data.message || 'Anomaly detected.');
+    }
+  });
+
+} catch (err) {
+  console.error('Socket.io init failed:', err);
+  setConnectionStatus('offline');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+//  HONOR FEED RENDER
+// ══════════════════════════════════════════════════════════════════════════
+function renderGigFeed() {
+  const list = document.getElementById('gig-list');
+  if (state.availableGigs.length === 0) {
+    list.innerHTML = `
+      <div class="waiting-placeholder">
+        <div class="waiting-icon">📡</div>
+        <p>Waiting for honors…</p>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  state.availableGigs.forEach(gig => {
+    const card = document.createElement('div');
+    card.className = 'card gig-card';
+    card.innerHTML = `
+      <div class="gig-header">
+        <div class="gig-cemetery">${escHtml(gig.cemetery || 'Cemetery')}</div>
+        <div class="gig-payout">${formatPayout(gig.payout)}</div>
+      </div>
+      <div class="gig-meta">
+        <span class="gig-chip plot">📍 Plot ${escHtml(String(gig.plotNumber || '—'))}</span>
+        <span class="gig-chip">${escHtml(gig.serviceType || 'Service')}</span>
+      </div>
+      <div class="gig-service-desc">${escHtml(gig.description || '')}</div>
+      <button class="btn btn-primary btn-block" onclick="acceptHonor()" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <img src="assets/logo.png" style="height: 1.2em; border-radius: 50%; border:1px solid #007aff;" alt="Logo" /> Accept Honor
+      </button>
+    `;
+    list.appendChild(card);
+  });
+
+  // Attach accept handlers
+  list.querySelectorAll('[data-gig-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const gig = state.availableGigs.find(g => String(g.id) === btn.dataset.gigId);
+      if (gig) acceptGig(gig);
+    });
+  });
+}
+
+function formatPayout(amount) {
+  if (amount == null) return '—';
+  const num = parseFloat(amount);
+  if (isNaN(num)) return String(amount);
+  return '$' + num.toFixed(2);
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+//  ACCEPT GIG
+// ══════════════════════════════════════════════════════════════════════════
+function acceptGig(gig) {
+  state.acceptedGig        = gig;
+  state.capturedImageBase64 = null;
+  state.capturedGPS         = null;
+
+  // Populate accepted view
+  document.getElementById('acc-cemetery').textContent  = gig.cemetery    || '—';
+  document.getElementById('acc-plot').textContent      = gig.plotNumber  || '—';
+  document.getElementById('acc-service').textContent   = gig.serviceType || '—';
+  document.getElementById('acc-payout').textContent    = formatPayout(gig.payout);
+  document.getElementById('acc-description').textContent = gig.description || '';
+
+  // Reset capture state
+  resetCapturUI();
+
+  // Switch views
+  document.getElementById('feed-section').style.display     = 'none';
+  document.getElementById('accepted-section').style.display = 'block';
+  document.getElementById('result-section').style.display   = 'none';
+  document.getElementById('reset-wrapper').style.display    = 'none';
+
+  // Initialize Map
+  const mapDiv = document.getElementById('driver-map');
+  mapDiv.style.display = 'block';
+  setTimeout(() => {
+    if (window.driverMapInstance) {
+      window.driverMapInstance.remove();
+      window.driverMapInstance = null;
+    }
+    const targetGps = gig.gps || `${gig.latitude},${gig.longitude}`;
+    if (targetGps) {
+      const [targetLat, targetLon] = targetGps.split(',').map(Number);
+      if (!isNaN(targetLat) && !isNaN(targetLon)) {
+        window.driverMapInstance = L.map('driver-map').setView([targetLat, targetLon], 16);
+        L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+          maxZoom: 20,
+          subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+          attribution: '&copy; Google Maps'
+        }).addTo(window.driverMapInstance);
+        
+        // Also draw the target route
+        updateMapRoute();
+      }
+    }
+  }, 100);
+
+  showToast('Honor accepted — capture photo and GPS');
+}
+
+function resetCapturUI() {
+  // Photo
+  document.getElementById('photo-input').value = '';
+  document.getElementById('photo-preview').src = '';
+  document.getElementById('photo-preview').classList.remove('visible');
+  const camBtn = document.getElementById('camera-btn');
+  camBtn.classList.remove('captured');
+  document.getElementById('camera-label-text').textContent = 'Tap to take photo';
+
+  // GPS
+  document.getElementById('gps-display').classList.remove('captured');
+  document.getElementById('gps-text').textContent = 'Location not captured';
+  document.getElementById('gps-error').textContent = '';
+  document.getElementById('gps-error').classList.remove('visible');
+
+  // Submit
+  document.getElementById('submit-btn').disabled = true;
+  document.getElementById('submit-error').textContent = '';
+  document.getElementById('submit-error').classList.remove('visible');
+
+  // TTS
+  document.getElementById('tts-indicator').classList.remove('visible');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+//  PHOTO CAPTURE
+// ══════════════════════════════════════════════════════════════════════════
+document.getElementById('photo-input').addEventListener('change', function () {
+  const file = this.files && this.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const base64 = e.target.result; // full data URL
+    state.capturedImageBase64 = base64;
+
+    // Preview
+    const preview = document.getElementById('photo-preview');
+    preview.src = base64;
+    preview.classList.add('visible');
+
+    // Update camera button
+    const camBtn = document.getElementById('camera-btn');
+    camBtn.classList.add('captured');
+    document.getElementById('camera-label-text').textContent = '✅ Photo captured — tap to retake';
+
+    checkReadyToSubmit();
+    showToast('📷 Photo captured');
+  };
+  reader.onerror = function () {
+    showToast('❌ Failed to read photo');
+  };
+  reader.readAsDataURL(file);
+});
+
+// Keyboard accessibility for camera button label (activates the file input)
+document.getElementById('camera-btn').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    document.getElementById('photo-input').click();
+  }
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+//  GPS CAPTURE
+// ══════════════════════════════════════════════════════════════════════════
+document.getElementById('gps-btn').addEventListener('click', captureGPS);
+
+function captureGPS() {
+  const btn     = document.getElementById('gps-btn');
+  const errEl   = document.getElementById('gps-error');
+  const display = document.getElementById('gps-display');
+  const gpsText = document.getElementById('gps-text');
+
+  errEl.textContent = '';
+  errEl.classList.remove('visible');
+
+  if (!navigator.geolocation) {
+    errEl.textContent = 'Geolocation is not supported by this browser.';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Locating…';
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      state.capturedGPS = { latitude: lat, longitude: lon };
+
+      gpsText.textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+      display.classList.add('captured');
+
+      btn.disabled = false;
+      btn.textContent = '✅ GPS Captured — tap to refresh';
+
+      checkReadyToSubmit();
+      updateMapRoute();
+      showToast('📍 Location captured');
+    },
+    (error) => {
+      btn.disabled = false;
+      btn.textContent = '📡 Capture GPS Location';
+
+      let msg = 'Unable to retrieve location.';
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          msg = 'Location access denied. Please allow location in your browser settings.';
+          break;
+        case error.POSITION_UNAVAILABLE:
+          msg = 'Location information unavailable.';
+          break;
+        case error.TIMEOUT:
+          msg = 'Location request timed out. Please try again.';
+          break;
+      }
+      errEl.textContent = msg;
+      errEl.classList.add('visible');
+      showToast('❌ ' + msg);
+
+      // Show manual fallback after geolocation failure
+      document.getElementById('gps-manual-fallback').style.display = 'block';
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
+}
+
+function updateMapRoute() {
+  if (!state.acceptedGig || !window.driverMapInstance) return;
+  const targetGps = state.acceptedGig.gps || `${state.acceptedGig.latitude},${state.acceptedGig.longitude}`;
+  if (!targetGps) return;
+  const [targetLat, targetLon] = targetGps.split(',').map(Number);
+  
+  let currentLat, currentLon;
+  if (state.capturedGPS) {
+    currentLat = state.capturedGPS.latitude;
+    currentLon = state.capturedGPS.longitude;
+  }
+
+  // Clear existing routing controls
+  if (window.routingControlInstance) {
+    try {
+      window.driverMapInstance.removeControl(window.routingControlInstance);
+    } catch (e) {}
+    window.routingControlInstance = null;
+  }
+
+  // Clear existing markers/lines
+  window.driverMapInstance.eachLayer(layer => {
+    if (layer instanceof L.Marker || layer instanceof L.Polyline) {
+      window.driverMapInstance.removeLayer(layer);
+    }
+  });
+
+  // Re-plot target plot
+  if (!isNaN(targetLat) && !isNaN(targetLon)) {
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${targetLat},${targetLon}`;
+    L.marker([targetLat, targetLon]).addTo(window.driverMapInstance)
+      .bindPopup(
+        `<div style="font-family: 'Inter', sans-serif; color: #fff;">` +
+        `<b>Grave Target</b><br>` +
+        `🏛️ ${state.acceptedGig.cemetery}<br>` +
+        `🪦 Plot: ${state.acceptedGig.plotNumber || state.acceptedGig.plot || '—'}<br>` +
+        `📍 <a href="${googleMapsUrl}" target="_blank" style="color:#c9a84c; font-weight:600; text-decoration:underline;">Open in Google Maps</a>` +
+        `</div>`
+      )
+      .openPopup();
+  }
+
+  // If driver location exists, plot and route
+  if (currentLat && currentLon && !isNaN(currentLat) && !isNaN(currentLon)) {
+    L.marker([currentLat, currentLon]).addTo(window.driverMapInstance)
+      .bindPopup('<b>Your Current Location</b>');
+
+    if (!isNaN(targetLat) && !isNaN(targetLon)) {
+      try {
+        window.routingControlInstance = L.Routing.control({
+          waypoints: [
+            L.latLng(currentLat, currentLon),
+            L.latLng(targetLat, targetLon)
+          ],
+          router: L.Routing.osrmv1({
+            serviceUrl: 'https://router.project-osrm.org/route/v1'
+          }),
+          lineOptions: {
+            styles: [{ color: '#c9a84c', weight: 5, opacity: 0.8 }]
+          },
+          createMarker: function() { return null; }, // Hide default markers
+          addWaypoints: false,
+          routeWhileDragging: false,
+          show: false
+        }).addTo(window.driverMapInstance);
+
+        window.routingControlInstance.on('routesfound', function(e) {
+          const routes = e.routes;
+          const bounds = L.latLngBounds(routes[0].coordinates);
+          window.driverMapInstance.fitBounds(bounds, { padding: [40, 40] });
+        });
+
+        window.routingControlInstance.on('routingerror', function(err) {
+          console.warn('Routing failed, using straight-line fallback:', err);
+          drawStraightPolylineFallback(currentLat, currentLon, targetLat, targetLon);
+        });
+      } catch (e) {
+        console.error('Failed to init routing control, using straight-line fallback:', e);
+        drawStraightPolylineFallback(currentLat, currentLon, targetLat, targetLon);
+      }
+    }
+  } else if (!isNaN(targetLat) && !isNaN(targetLon)) {
+    window.driverMapInstance.setView([targetLat, targetLon], 16);
+  }
+}
+
+function drawStraightPolylineFallback(currentLat, currentLon, targetLat, targetLon) {
+  L.polyline([[currentLat, currentLon], [targetLat, targetLon]], { color: '#c9a84c', weight: 4, opacity: 0.8 }).addTo(window.driverMapInstance);
+  const bounds = L.latLngBounds([[currentLat, currentLon], [targetLat, targetLon]]);
+  window.driverMapInstance.fitBounds(bounds, { padding: [40, 40] });
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+//  SUBMIT READINESS
+// ══════════════════════════════════════════════════════════════════════════
+function checkReadyToSubmit() {
+  const ready = !!(state.capturedImageBase64 && state.capturedGPS && state.acceptedGig);
+  document.getElementById('submit-btn').disabled = !ready || state.submitting;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+//  SUBMIT PROOF
+// ══════════════════════════════════════════════════════════════════════════
+document.getElementById('submit-btn').addEventListener('click', submitProof);
+
+async function submitProof() {
+  if (state.submitting) return;
+  if (!state.acceptedGig || !state.capturedGPS || !state.capturedImageBase64) {
+    showToast('⚠️ Please capture both photo and GPS first');
+    return;
+  }
+
+  const errEl = document.getElementById('submit-error');
+  errEl.textContent = '';
+  errEl.classList.remove('visible');
+
+  state.submitting = true;
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Submitting…';
+
+  const payload = {
+    jobId:          state.acceptedGig.id,
+    gps:            state.capturedGPS,
+    driverId:       state.driverId,
+    imageBase64:    state.capturedImageBase64,
+  };
+
+  try {
+    const response = await fetch(`${API_BASE}/verify-proof`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const msg = data.message || data.error || `Server error: ${response.status}`;
+      throw new Error(msg);
+    }
+
+    // Determine verification result from response
+    const verified = data.verified === true || data.status === 'verified' || response.status === 200;
+    const isQuarantined = data.quarantined === true || data.status === 'quarantined' || data.anomaly === true;
+
+    if (isQuarantined) {
+      showResult('quarantined', '🚨', 'QUARANTINED', data.reason || data.message || 'Proof flagged for review.');
+    } else if (verified) {
+      showResult('verified', '✅', 'VERIFIED', data.message || 'Service proof accepted successfully.');
+    } else {
+      // Treat as pending / success from HTTP 200
+      showResult('verified', '✅', 'SUBMITTED', data.message || 'Proof submitted. Awaiting verification.');
+    }
+
+  } catch (err) {
+    console.error('submitProof error:', err);
+    const msg = err.message || 'Network error. Please try again.';
+    errEl.textContent = msg;
+    errEl.classList.add('visible');
+    showToast('❌ Submission failed');
+
+    btn.disabled = false;
+    btn.textContent = 'Submit Proof';
+    state.submitting = false;
+    checkReadyToSubmit();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+//  RESULT DISPLAY
+// ══════════════════════════════════════════════════════════════════════════
+function showResult(type, icon, label, reason) {
+  state.submitting = false;
+
+  const banner     = document.getElementById('result-banner');
+  const iconEl     = document.getElementById('result-icon');
+  const labelEl    = document.getElementById('result-label');
+  const reasonEl   = document.getElementById('result-reason');
+
+  banner.className  = 'result-banner ' + type;
+  iconEl.textContent  = icon;
+  labelEl.textContent = label;
+  reasonEl.textContent = reason || '';
+
+  // Show result, hide accepted view
+  document.getElementById('accepted-section').style.display = 'none';
+  document.getElementById('result-section').style.display   = 'block';
+  document.getElementById('reset-wrapper').style.display    = 'block';
+
+  // Scroll to result
+  document.getElementById('result-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  if (type === 'verified') {
+    showToast('✅ Proof verified!');
+  } else {
+    showToast('🚨 Proof quarantined');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+//  RESET / NEW GIG
+// ══════════════════════════════════════════════════════════════════════════
+document.getElementById('reset-btn').addEventListener('click', () => {
+  // Remove accepted gig from list so it doesn't re-appear
+  if (state.acceptedGig) {
+    state.availableGigs = state.availableGigs.filter(g => g.id !== state.acceptedGig.id);
+  }
+  state.acceptedGig         = null;
+  state.capturedImageBase64 = null;
+  state.capturedGPS         = null;
+  state.submitting           = false;
+
+  renderGigFeed();
+
+  document.getElementById('result-section').style.display   = 'none';
+  document.getElementById('reset-wrapper').style.display    = 'none';
+  document.getElementById('feed-section').style.display     = 'block';
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+//  TTS
+// ══════════════════════════════════════════════════════════════════════════
+document.getElementById('tts-btn').addEventListener('click', playTTS);
+
+async function playTTS() {
+  if (!state.acceptedGig) return;
+
+  const gig = state.acceptedGig;
+  const text = [
+    `Gig accepted.`,
+    `Cemetery: ${gig.cemetery || 'Unknown'}.`,
+    `Plot number: ${gig.plotNumber || 'Unknown'}.`,
+    `Service type: ${gig.serviceType || 'Unknown'}.`,
+    gig.description ? `Details: ${gig.description}.` : '',
+    `Payout: ${formatPayout(gig.payout)}.`,
+    `Please capture a photo and your GPS location, then submit proof of service.`,
+  ].filter(Boolean).join(' ');
+
+  const btn       = document.getElementById('tts-btn');
+  const indicator = document.getElementById('tts-indicator');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Loading audio…';
+  indicator.classList.remove('visible');
+
+  try {
+    const response = await fetch(`${TTS_BASE}/generate`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ text }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`TTS server error: ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    const url  = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+
+    indicator.classList.add('visible');
+    btn.textContent = '🔊 Playing…';
+
+    audio.addEventListener('ended', () => {
+      indicator.classList.remove('visible');
+      btn.disabled = false;
+      btn.textContent = '🔊 Read Gig Details';
+      URL.revokeObjectURL(url);
+    });
+
+    audio.addEventListener('error', () => {
+      indicator.classList.remove('visible');
+      btn.disabled = false;
+      btn.textContent = '🔊 Read Gig Details';
+      URL.revokeObjectURL(url);
+      showToast('❌ Audio playback failed');
+    });
+
+    audio.play().catch(err => {
+      console.error('Audio play error:', err);
+      indicator.classList.remove('visible');
+      btn.disabled = false;
+      btn.textContent = '🔊 Read Gig Details';
+      showToast('❌ Could not play audio');
+    });
+
+  } catch (err) {
+    console.error('TTS error:', err);
+    btn.disabled = false;
+    btn.textContent = '🔊 Read Gig Details';
+    indicator.classList.remove('visible');
+    showToast('❌ TTS unavailable: ' + (err.message || 'Error'));
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+//  MANUAL GPS
+// ══════════════════════════════════════════════════════════════════════════
+function acceptManualGPS() {
+  const latInput = document.getElementById('manual-lat');
+  const lonInput = document.getElementById('manual-lon');
+  const errEl = document.getElementById('gps-manual-error');
+  errEl.textContent = '';
+
+  const lat = parseFloat(latInput.value);
+  const lon = parseFloat(lonInput.value);
+
+  if (isNaN(lat) || isNaN(lon)) {
+    errEl.textContent = 'Both latitude and longitude must be valid numbers.';
+    return;
+  }
+  if (lat < -90 || lat > 90) {
+    errEl.textContent = 'Latitude must be between -90 and 90.';
+    return;
+  }
+  if (lon < -180 || lon > 180) {
+    errEl.textContent = 'Longitude must be between -180 and 180.';
+    return;
+  }
+
+  state.capturedGPS = { latitude: lat, longitude: lon };
+
+  const display = document.getElementById('gps-display');
+  const gpsText = document.getElementById('gps-text');
+  gpsText.textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)} (manual)`;
+  display.classList.add('captured');
+
+  const btn = document.getElementById('gps-btn');
+  btn.textContent = '✅ GPS Set Manually — tap to refresh';
+  document.getElementById('gps-manual-fallback').style.display = 'none';
+
+  checkReadyToSubmit();
+  updateMapRoute();
+  showToast('📍 Manual location accepted');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+//  SERVICE WORKER REGISTRATION (PWA)
+// ══════════════════════════════════════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then((reg) => {
+    console.log('[GraveFlow] Service Worker registered, scope:', reg.scope);
+  }).catch((err) => {
+    console.warn('[GraveFlow] Service Worker registration failed:', err);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+//  INIT — render empty gig feed
+// ══════════════════════════════════════════════════════════════════════════
+renderGigFeed();
+</script>
+<script type="module" src="twin_assistant.js"></script>
+</body>
+</html>

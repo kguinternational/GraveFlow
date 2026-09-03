@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>GraveFlow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      height:100vh;background:#08080a;color:#e8e8f0;
+      font-family:'Inter',system-ui,sans-serif;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      -webkit-app-region:drag;overflow:hidden;
+    }
+    .logo{font-size:72px;margin-bottom:24px;animation:float 3s ease-in-out infinite}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    h1{font-size:36px;font-weight:700;color:#c9a84c;letter-spacing:-1px;margin-bottom:8px}
+    p{font-size:14px;color:#55556a;letter-spacing:1px;text-transform:uppercase;margin-bottom:48px}
+    .spinner{
+      width:40px;height:40px;border:3px solid #222230;
+      border-top-color:#c9a84c;border-radius:50%;
+      animation:spin 0.8s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .sub{margin-top:20px;font-size:12px;color:#333348}
+  </style>
+</head>
+<body>
+  <div class="logo">🪦</div>
+  <h1>GraveFlow</h1>
+  <p>AI-Powered Cemetery Care Platform</p>
+  <div class="spinner"></div>
+  <div class="sub">Initializing servers…</div>
+</body>
+</html>

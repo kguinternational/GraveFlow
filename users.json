@@ -1,0 +1,297 @@
+Created At: 2026-07-14T18:06:40Z
+Completed At: 2026-07-14T18:06:40Z
+[
+  {
+    "id": "USER_ADMIN",
+    "name": "GraveFlow Administrator",
+    "email": "admin@graveflow.com",
+    "role": "admin",
+    "callsign": null,
+    "passwordHash": "$2a$10$huBBQy4Bkf8UJhHsDHaHa.r.rHIOTE23dRkVG1kYf1XzgluF8jqVi",
+    "createdAt": "2026-06-14T00:52:48.658Z"
+  },
+  {
+    "id": "USER_CSUITE",
+    "name": "Chief Executive Agent",
+    "email": "csuite@graveflow.com",
+    "role": "csuite",
+    "callsign": null,
+    "passwordHash": "$2a$10$UsY5LQMTqXGgisPxftxbZ.rHlw0Alm9QCNpLlq3iUijyROElV9Hcu",
+    "createdAt": "2026-06-14T00:52:48.718Z"
+  },
+  {
+    "id": "USER_ENTERPRISE",
+    "name": "Enterprise Partner",
+    "email": "enterprise@graveflow.com",
+    "role": "enterprise",
+    "callsign": null,
+    "passwordHash": "$2a$10$6FFBl4s/lbXEnPfmIFTcj.Oc0tlg9Havxhhmz9L4iy3g843cQGId2",
+    "createdAt": "2026-06-14T00:52:48.777Z"
+  },
+  {
+    "id": "USER_RIDER",
+    "name": "Test Rider",
+    "email": "rider@graveflow.com",
+    "role": "rider",
+    "callsign": null,
+    "passwordHash": "$2a$10$TWfKtqQo946UPJCR0a5LyeVpspGUCSDDtE0790bxuJZ3DDi0xbJoq",
+    "createdAt": "2026-06-14T00:52:48.837Z"
+  },
+  {
+    "id": "USER_DRIVER",
+    "name": "Test Driver",
+    "email": "driver@graveflow.com",
+    "role": "driver",
+    "callsign": "DRV_TEST01",
+    "passwordHash": "$2a$10$Fp3b.guHjfPnzofZdQWEve2ywZKwsUfcl9XESsR2VaL50ObLiEGgm",
+    "createdAt": "2026-06-14T00:52:48.898Z"
+  },
+  {
+    "id": "USER_7D23AE2D",
+    "name": "Automated Rider",
+    "email": "rider_1781398510482@example.com",
+    "role": "rider",
+    "callsign": null,
+    "passwordHash": "$2a$10$PVe8sErSH2Jy8UlwFWus8eCG2enaug1KGLbKteiLRMszDILgywUFi",
+    "createdAt": "2026-06-14T00:55:10.552Z"
+  },
+  {
+    "id": "USER_A5D6D58C",
+    "name": "Automated Driver",
+    "email": "driver_1781398510482@example.com",
+    "role": "driver",
+    "callsign": "DRV_AUTO_0482",
+    "passwordHash": "$2a$10$D55qPBPf6F2AwHZb4kmX1eLfTdmjq208Xnzx2DX7vWOZZQgr.Emwa",
+    "createdAt": "2026-06-14T00:55:10.616Z"
+  },
+  {
+    "id": "USER_B86C5FAA",
+    "name": "Automated Rider",
+    "email": "rider_1781398545979@example.com",
+    "role": "rider",
+    "callsign": null,
+    "passwordHash": "$2a$10$bsRJocJrz1jJFB9SgYDT7eIn/b7.yHXBnNyEv9/OsehC29ezVkfL6",
+    "createdAt": "2026-06-14T00:55:46.042Z"
+  },
+  {
+    "id": "USER_22FEBC7E",
+    "name": "Automated Driver",
+    "email": "driver_1781398545979@example.com",
+    "role": "driver",
+    "callsign": "DRV_AUTO_5979",
+    "passwordHash": "$2a$10$RbaCFn7kAAXoq43lABaPfuyUBG2sHUSG/kPlBQ4R0VsvNUZpUoJD.",
+    "createdAt": "2026-06-14T00:55:46.104Z"
+  },
+  {
+    "id": "USER_2FBEFB22",
+    "name": "Automated Rider",
+    "email": "rider_1781398609919@example.com",
+    "role": "rider",
+    "callsign": null,
+    "passwordHash": "$2a$10$o/hsYFqNJQub/jf.Xy9bwOhWo2IJ2JqQAf463Z4.VW.pNUf7e.zzW",
+    "createdAt": "2026-06-14T00:56:49.988Z"
+  },
+  {
+    "id": "USER_FD31D251",
+    "name": "Automated Driver",
+    "email": "driver_1781398609919@example.com",
+    "role": "driver",
+    "callsign": "DRV_AUTO_9919",
+    "passwordHash": "$2a$10$lII0bEe4PLj87pcAwF62C.a5NhqyY72XV9abrKS4rS3jnZzqARcHy",
+    "createdAt": "2026-06-14T00:56:50.051Z"
+  },
+  {
+    "id": "USER_40F1E969",
+    "name": "Automated Rider",
+    "email": "rider_1781398640833@example.com",
+    "role": "rider",
+    "callsign": null,
+    "passwordHash": "$2a$10$0/ScomVWimad7gI.W6kMBeex0N7ctzpYwmwnGvVCyGCk1IxQlI41C",
+    "createdAt": "2026-06-14T00:57:20.901Z"
+  },
+  {
+    "id": "USER_56629567",
+    "name": "Automated Driver",
+    "email": "driver_1781398640833@example.com",
+    "role": "driver",
+    "callsign": "DRV_AUTO_0833",
+    "passwordHash": "$2a$10$CIiy0MI1TnukCJusuLgrlO/qMfhXV9x9ge4q96a17lNYyTafKO.Sa",
+    "createdAt": "2026-06-14T00:57:20.965Z"
+  },
+  {
+    "id": "USER_D6C432B5",
+    "name": "Automated Rider",
+    "email": "rider_1781398693382@example.com",
+    "role": "rider",
+    "callsign": null,
+    "passwordHash": "$2a$10$lesPagmtpG/IMs5NMbEN0.WmeYUqg8hrBgfHt5TNViXaX7W16VhPG",
+    "createdAt": "2026-06-14T00:58:13.449Z"
+  },
+  {
+    "id": "USER_634B677F",
+    "name": "Automated Driver",
+    "email": "driver_1781398693382@example.com",
+    "role": "driver",
+    "callsign": "DRV_AUTO_3382",
+    "passwordHash": "$2a$10$5cTDCSmvDWUgdT70sW./BOjhkc0K6Js7IQ0XCfyjjbe.G0IVE0KxS",
+    "createdAt": "2026-06-14T00:58:13.512Z"
+  },
+  {
+    "id": "USER_E646E078",
+    "name": "Automated Rider",
+    "email": "rider_1781399812176@example.com",
+    "role": "rider",
+    "callsign": null,
+    "passwordHash": "$2a$10$3Cb0m9wPsvvepT9F33d4O.garFEx5U9pCV65cgQhfBw.T4LRePuIW",
+    "createdAt": "2026-06-14T01:16:52.239Z"
+  },
+  {
+    "id": "USER_04018142",
+    "name": "Automated Driver",
+    "email": "driver_1781399812176@example.com",
+    "role": "driver",
+    "callsign": "DRV_AUTO_2176",
+    "passwordHash": "$2a$10$D1x.m8/zmiDqiq0vuXgFfuLiZ7qEEq.chWEFbIA2yINTk9uxENHBq",
+    "createdAt": "2026-06-14T01:16:52.302Z"
+  },
+  {
+    "id": "USER_0EF6BCBD",
+    "name": "Automated Rider",
+    "email": "rider_1781400020908@example.com",
+    "role": "rider",
+    "callsign": null,
+    "walletAddress": null,
+    "passwordHash": "$2a$10$uxPqC.x/mZrMCmMb7DlyLemEs2anwNhVBYNZlw5IIyVCLd7RXJTTS",
+    "createdAt": "2026-06-14T01:20:20.978Z"
+  },
+  {
+    "id": "USER_8F29DD6F",
+    "name": "Automated Driver",
+    "email": "driver_1781400020908@example.com",
+    "role": "driver",
+    "callsign": "DRV_AUTO_0908",
+    "walletAddress": null,
+    "passwordHash": "$2a$10$S0JBXN0eBvfEYhGFJnS36ehW8rW3pgpGqAtWtiQ5sgtrxc9DWEe4K",
+    "createdAt": "2026-06-14T01:20:21.045Z"
+  },
+  {
+    "id": "USER_42C44165",
+    "name": "Automated Rider",
+    "email": "rider_1781400045214@example.com",
+    "role": "rider",
+    "callsign": null,
+    "walletAddress": null,
+    "passwordHash": "$2a$10$J0d2P/jn1IGMA8iCMyi4bOazBNDAxCmtTMAY5kGK0ipsytqrrvLp2",
+    "createdAt": "2026-06-14T01:20:45.292Z"
+  },
+  {
+    "id": "USER_F59762FA",
+    "name": "Automated Driver",
+    "email": "driver_1781400045214@example.com",
+    "role": "driver",
+    "callsign": "DRV_AUTO_5214",
+    "walletAddress": null,
+    "passwordHash": "$2a$10$jo1Tr1aacxCpXrM0IyaLs.ic1XP1HM09l7bEhyJIahOHflmOaedYi",
+    "createdAt": "2026-06-14T01:20:45.354Z"
+  },
+  {
+    "id": "USER_B4E10108",
+    "name": "Automated Rider",
+    "email": "rider_1781400434396@example.com",
+    "role": "rider",
+    "callsign": null,
+    "walletAddress": null,
+    "passwordHash": "$2a$10$gAQhKw2k4PFsrf4LtXxP3.qz7ymgUVguDnwJf8c/NOiyB7LhSJVNi",
+    "createdAt": "2026-06-14T01:27:14.460Z"
+  },
+  {
+    "id": "USER_A3BBB66D",
+    "name": "Automated Driver",
+    "email": "driver_1781400434396@example.com",
+    "role": "driver",
+    "callsign": "DRV_AUTO_4396",
+    "walletAddress": null,
+    "passwordHash": "$2a$10$e0XlXb0.nQUstKHPAH98ZOBPn6.nbjdLaJlL.rwvIX5S8DIdBKPUK",
+    "createdAt": "2026-06-14T01:27:14.523Z"
+  },
+  {
+    "id": "USER_FF58CA05",
+    "name": "Automated Rider",
+    "email": "rider_1781400596196@example.com",
+    "role": "rider",
+    "callsign": null,
+    "walletAddress": null,
+    "passwordHash": "$2a$10$a5qpOt8sKbUqQOV8gHuYn.paLXLRQ.cqN7F7dUHLkStR1XJAkQ1la",
+    "createdAt": "2026-06-14T01:29:56.266Z"
+  },
+  {
+    "id": "USER_7C1E011E",
+    "name": "Automated Driver",
+    "email": "driver_1781400596196@example.com",
+    "role": "driver",
+    "callsign": "DRV_AUTO_6196",
+    "walletAddress": null,
+    "passwordHash": "$2a$10$x288tU9Xwyr0AfIK0G6eKuZOoigf.ajat8v/Qe2sMtRZBXbkd3jLm",
+    "createdAt": "2026-06-14T01:29:56.330Z"
+  },
+  {
+    "id": "USER_9DC4BC31",
+    "name": "Automated Rider",
+    "email": "rider_1781401175308@example.com",
+    "role": "rider",
+    "callsign": null,
+    "walletAddress": null,
+    "passwordHash": "$2a$10$pql93knAU60Mfg/ofh4EJOqTXm5niqEX1bOIfOYTsguR3dVAO8Lty",
+    "createdAt": "2026-06-14T01:39:35.372Z"
+  },
+  {
+    "id": "USER_3C7C8ACE",
+    "name": "Automated Driver",
+    "email": "driver_1781401175308@example.com",
+    "role": "driver",
+    "callsign": "DRV_AUTO_5308",
+    "walletAddress": null,
+    "passwordHash": "$2a$10$sRh.n48vW.Qi4x7lCYKGaeV.n/mfJR.i5pv/6lHXAWGscSuhVLenG",
+    "createdAt": "2026-06-14T01:39:35.436Z"
+  },
+  {
+    "id": "USER_332FD338",
+    "name": "Automated Rider",
+    "email": "rider_1781401207408@example.com",
+    "role": "rider",
+    "callsign": null,
+    "walletAddress": null,
+    "passwordHash": "$2a$10$Yae.ztdlunaDILZ.MvkVGOejqzv23qglV0e/iNt.JfTMgPIp9KB4.",
+    "createdAt": "2026-06-14T01:40:07.489Z"
+  },
+  {
+    "id": "USER_61A52755",
+    "name": "Automated Driver",
+    "email": "driver_1781401207408@example.com",
+    "role": "driver",
+    "callsign": "DRV_AUTO_7408",
+    "walletAddress": null,
+    "passwordHash": "$2a$10$Uzo1HrB1HahEModOcxrOTecHJFCm3wYfikMTriCszixMgZQDLWgIm",
+    "createdAt": "2026-06-14T01:40:07.557Z"
+  },
+  {
+    "id": "USER_9B80E80F",
+    "name": "Automated Rider",
+    "email": "rider_1781401253030@example.com",
+    "role": "rider",
+    "callsign": null,
+    "walletAddress": null,
+    "passwordHash": "$2a$10$LUHOEwu6jNeAYU/2E/X.ne6xi1HFUr/52LWxMR7k/GraO9UE9sMvG",
+    "createdAt": "2026-06-14T01:40:53.105Z"
+  },
+  {
+    "id": "USER_7439BA34",
+    "name": "Automated Driver",
+    "email": "driver_1781401253030@example.com",
+    "role": "driver",
+    "callsign": "DRV_AUTO_3030",
+    "walletAddress": null,
+    "passwordHash": "$2a$10$Bw2ujligpTmzOE7QR97gteMueNUvfFFmBPFz5h/YSw4P7AcDoefky",
+    "createdAt": "2026-06-14T01:40:53.170Z"
+  }
+]

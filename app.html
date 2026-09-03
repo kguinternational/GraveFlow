@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>GraveFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#08080a;--panel:#0f0f14;--panel2:#16161e;
+      --border:#222230;--accent:#c9a84c;--accent2:#9b6dff;
+      --text:#e8e8f0;--muted:#55556a;--radius:10px;
+      --font:'Inter',system-ui,sans-serif;
+    }
+    html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden}
+
+    /* ── Titlebar drag region (macOS) ── */
+    .titlebar{
+      -webkit-app-region:drag;
+      height:40px;background:var(--panel);
+      border-bottom:1px solid var(--border);
+      display:flex;align-items:center;
+      padding:0 80px 0 20px; /* leave space for traffic lights */
+      gap:12px;flex-shrink:0;
+    }
+    .titlebar-logo{font-size:16px;font-weight:700;color:var(--accent);letter-spacing:-.3px}
+    .titlebar-sub{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+    .titlebar-spacer{flex:1}
+    .server-badge{
+      -webkit-app-region:no-drag;
+      font-size:11px;padding:3px 10px;border-radius:20px;
+      background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.3);color:#4caf50;
+      display:flex;align-items:center;gap:5px;
+    }
+    .dot{width:6px;height:6px;border-radius:50%;background:#4caf50;animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+    /* ── Layout ── */
+    .shell{display:flex;flex-direction:column;height:100vh}
+    .body{display:flex;flex:1;overflow:hidden}
+
+    /* ── Sidebar ── */
+    nav{
+      width:220px;background:var(--panel);border-right:1px solid var(--border);
+      display:flex;flex-direction:column;padding:16px 0;flex-shrink:0;
+      overflow-y:auto;
+    }
+    .nav-section{padding:6px 16px 4px;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted)}
+    .nav-item{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 16px;cursor:pointer;border:none;
+      background:transparent;color:var(--text);font-family:var(--font);font-size:13px;
+      text-align:left;width:100%;transition:background .15s;
+      border-left:3px solid transparent;
+    }
+    .nav-item:hover{background:var(--panel2)}
+    .nav-item.active{background:var(--panel2);border-left-color:var(--accent);color:var(--accent)}
+    .nav-item .nav-icon{font-size:18px;width:24px;text-align:center}
+    .nav-item .nav-label{font-weight:500}
+    .nav-divider{height:1px;background:var(--border);margin:8px 16px}
+    .nav-hint{padding:4px 16px;font-size:10px;color:var(--muted)}
+
+    /* ── WebView frame ── */
+    .frame-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+    webview{flex:1;width:100%;border:none}
+
+    /* ── Loading bar ── */
+    .loading-bar{
+      height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));
+      transition:width .3s ease;width:0%;
+    }
+    .loading-bar.loading{animation:load 1.2s ease infinite}
+    @keyframes load{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Titlebar -->
+  <div class="titlebar">
+    <span style="font-size:20px">🪦</span>
+    <div>
+      <div class="titlebar-logo">GraveFlow</div>
+    </div>
+    <div class="titlebar-spacer"></div>
+    <div class="server-badge">
+      <div class="dot"></div>
+      <span id="serverStatus">Starting…</span>
+    </div>
+  </div>
+
+  <div class="body">
+    <!-- Sidebar -->
+    <nav id="sidebar">
+      <div class="nav-section">Platform</div>
+
+      <button class="nav-item active" data-view="home" data-file="index.html">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Home</span>
+      </button>
+      <button class="nav-item" data-view="rider" data-file="rider.html">
+        <span class="nav-icon">🌹</span>
+        <span class="nav-label">Rider</span>
+      </button>
+      <button class="nav-item" data-view="driver" data-file="driver.html">
+        <span class="nav-icon">🚗</span>
+        <span class="nav-label">Driver PWA</span>
+      </button>
+
+      <div class="nav-divider"></div>
+      <div class="nav-section">Operations</div>
+
+      <button class="nav-item" data-view="admin" data-file="admin.html">
+        <span class="nav-icon">📡</span>
+        <span class="nav-label">Command Center</span>
+      </button>
+      <button class="nav-item" data-view="csuite" data-file="csuite.html">
+        <span class="nav-icon">👑</span>
+        <span class="nav-label">C-Suite AI</span>
+      </button>
+
+      <button class="nav-item" data-view="analytics" data-file="analytics.html">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Analytics</span>
+      </button>
+
+      <div class="nav-divider"></div>
+      <div class="nav-section">Tunnel</div>
+      <div id="tunnelStatus" style="padding:8px 16px;font-size:11px;color:var(--muted)">
+        <div>🚇 <span id="tunnelKgu">offline</span></div>
+        <div style="margin-top:4px">👑 <span id="tunnelCsuite">offline</span></div>
+      </div>
+      <div class="nav-divider"></div>
+      <div class="nav-hint">⌘1–6 to switch views</div>
+    </nav>
+
+    <!-- WebView frame -->
+    <div class="frame-wrap">
+      <div class="loading-bar" id="loadingBar"></div>
+      <webview id="wv" src="index.html"
+        allowpopups
+        webpreferences="contextIsolation=false, nodeIntegration=false"
+        style="flex:1;width:100%;border:none">
+      </webview>
+    </div>
+  </div>
+
+</div>
+<script>
+const wv = document.getElementById('wv');
+const bar = document.getElementById('loadingBar');
+const status = document.getElementById('serverStatus');
+let currentView = 'home';
+
+// Nav click
+document.querySelectorAll('.nav-item').forEach(btn => {
+  btn.addEventListener('click', () => loadView(btn.dataset.view, btn.dataset.file));
+});
+
+function loadView(view, file) {
+  currentView = view;
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  bar.style.width = '30%';
+  bar.classList.add('loading');
+  wv.src = file;
+}
+
+// Loading events
+wv.addEventListener('did-start-loading', () => {
+  bar.style.width = '60%';
+  bar.classList.add('loading');
+});
+wv.addEventListener('did-stop-loading', () => {
+  bar.style.width = '100%';
+  bar.classList.remove('loading');
+  setTimeout(() => bar.style.width = '0%', 400);
+});
+
+// IPC navigation from menu
+if (window.graveflow) {
+  window.graveflow.onNavigate(view => {
+    const btn = document.querySelector(`[data-view="${view}"]`);
+    if (btn) loadView(view, btn.dataset.file);
+  });
+}
+
+// Server status polling
+async function checkServers() {
+  try {
+    const r = await fetch('http://localhost:8002/health');
+    if (r.ok) status.textContent = 'Servers Online';
+    else throw new Error();
+  } catch {
+    status.textContent = 'Starting…';
+  }
+}
+checkServers();
+setInterval(checkServers, 5000);
+
+// Tunnel URL display
+async function checkTunnelUrls() {
+  try {
+    const r = await fetch('tunnel_urls.json');
+    if (r.ok) {
+      const data = await r.json();
+      if (data.kgu_os) {
+        document.getElementById('tunnelKgu').textContent = data.kgu_os;
+        document.getElementById('tunnelKgu').title = data.kgu_os;
+      }
+      if (data.csuite_ai) {
+        document.getElementById('tunnelCsuite').textContent = data.csuite_ai;
+        document.getElementById('tunnelCsuite').title = data.csuite_ai;
+      }
+    }
+  } catch(e) { /* tunnel not active */ }
+}
+checkTunnelUrls();
+setInterval(checkTunnelUrls, 10000);
+</script>
+</body>
+</html>

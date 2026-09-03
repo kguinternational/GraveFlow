@@ -1,0 +1,13 @@
+[
+  {
+    "timestamp": "2026-08-07T22:51:52.030Z",
+    "gigId": "test-gig-942",
+    "driverId": "AGENT_DRIVER_001",
+    "riderId": "unknown",
+    "serviceType": "Flower Placement",
+    "loveScore": 0.91,
+    "loveLabel": "Profound",
+    "os": "The Love Effect OS",
+    "osVersion": "1.0.0"
+  }
+]

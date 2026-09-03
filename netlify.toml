@@ -1,0 +1,8 @@
+[build]
+  command = "mkdir -p dist && cp *.html sw.js driver-manifest.json dist/ || true && cp -r assets client driver mobile dist/ || true"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
